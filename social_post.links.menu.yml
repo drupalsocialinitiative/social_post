@@ -1,0 +1,6 @@
+social_post.settings:
+  title: Autoposting settings
+  description: Configure autoposting settings
+  route_name: social_post.integrations
+  parent: social_api.admin_config
+  weight: -20
