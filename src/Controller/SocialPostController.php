@@ -10,7 +10,7 @@ use Drupal\social_api\Controller\SocialApiController;
 
 class SocialPostController extends SocialApiController
 {
-  public function integrations($type = 'autoposting')
+  public function integrations($type = 'social_post')
   {
     return parent::integrations($type);
   }

@@ -1,5 +1,5 @@
 social_post.integrations:
-  path: '/admin/config/social-api/autoposting'
+  path: '/admin/config/social-api/social-post'
   defaults:
     _controller: '\Drupal\social_post\Controller\SocialPostController::integrations'
     _title: 'Autoposting settings'
