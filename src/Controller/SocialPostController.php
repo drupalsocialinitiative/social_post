@@ -8,10 +8,15 @@ namespace Drupal\social_post\Controller;
 
 use Drupal\social_api\Controller\SocialApiController;
 
-class SocialPostController extends SocialApiController
-{
-  public function integrations($type = 'social_post')
-  {
+/**
+ * Class SocialPostController
+ *
+ * @package Drupal\social_post\Controller
+ */
+
+class SocialPostController extends SocialApiController {
+
+  public function integrations($type = 'social_post') {
     return parent::integrations($type);
   }
 }

@@ -8,6 +8,11 @@ namespace Drupal\social_post\Plugin;
 
 use Drupal\social_api\Plugin\NetworkInterface;
 
+/**
+ * Class SocialPostNetworkInterface.
+ *
+ * @package Drupal\social_post\Plugin\Network
+ */
 interface SocialPostNetworkInterface extends NetworkInterface
 {
   /**
