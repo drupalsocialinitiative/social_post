@@ -1,0 +1,11 @@
+view social post user entity lists:
+  title: 'View Social Post user entity lists'
+  description: 'View user entity lists of social post integrations'
+
+delete social post user accounts:
+  title: 'Delete Social Post user accounts'
+  description: 'Allow user to delete user accounts associated to all Drupal users'
+
+delete own social post user accounts:
+  title: 'Delete own Social Post user accounts'
+  description: 'Allow user to delete their own accounts associated to their Drupal user'
