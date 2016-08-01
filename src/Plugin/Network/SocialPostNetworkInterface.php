@@ -14,6 +14,6 @@ interface SocialPostNetworkInterface extends NetworkInterface {
    *
    * Uses the underlying SDK library to publish to the social network.
    */
-  public function doPost();
+  public function post();
 
 }
