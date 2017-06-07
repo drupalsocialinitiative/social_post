@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for Social Post.
+ */
+use Drupal\social_api\Utility\SocialApiImplementerInstaller;
+
+/**
+ * Implements hook_requirements().
+ */
+function social_post_requirements($phase) {
+    $requirements = [];
+
+    // Social API should be installed at this point in order to check library.
+    \Drupal::service('module_installer')->install(['social_api']);
+
+    if ($phase == 'install') {
+        $requirements = SocialApiImplementerInstaller::checkLibrary('social_post', 'Social Post', 'league/oauth2-client', '2.1.0', '3.0');
+    }
+
+    return $requirements;
+}
+
