@@ -2,14 +2,14 @@
 
 namespace Drupal\social_post\PostManager;
 
-use Drupal\social_api\OAuth2Manager\OAuth2ManagerInterface as BaseOAuth2ManagerInterface;
+use Drupal\social_api\OAuth2Manager\OAuth2ManagerInterface;
 
 /**
  * Defines an PostManager Interface.
  *
  * @package Drupal\social_post\PostManager
  */
-interface PostManagerInterface extends BaseOAuth2ManagerInterface {
+interface PostManagerInterface extends OAuth2ManagerInterface {
 
   /**
    * Wrapper for post method.
