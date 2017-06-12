@@ -2,21 +2,25 @@
 
 namespace Drupal\social_post\PostManager;
 
-use Drupal\social_api\BaseManager\BaseManagerInterface;
+use Drupal\social_api\OAuth2Manager\OAuth2ManagerInterface;
 
 /**
  * Defines an PostManager Interface.
  *
  * @package Drupal\social_post\PostManager
  */
-interface PostManagerInterface extends BaseManagerInterface {
+interface PostManagerInterface extends OAuth2ManagerInterface {
 
   /**
-   * Execute the api to post on social network.
+   * Wrapper for post method.
    *
-   * @return mixed
-   *   The user data.
+   * @param string $access_token
+   *   The access token.
+   * @param string $access_token_secret
+   *   The access token secret.
+   * @param string $status
+   *   The tweet text.
    */
-  public function doExecute();
+  public function doPost($access_token, $access_token_secret, $status);
 
 }
