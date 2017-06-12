@@ -9,11 +9,7 @@ use Drupal\social_api\BaseManager;
  *
  * @package Drupal\social_post
  */
-abstract class PostManager extends BaseManager\BaseManager implements PostManagerInterface {
+abstract class PostManager extends BaseManager implements PostManagerInterface {
 
-    /**
-     * Do Nothing
-     *
-     */
-
+  // Do Nothing.
 }
