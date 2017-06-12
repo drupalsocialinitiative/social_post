@@ -19,7 +19,7 @@ interface PostManagerInterface extends OAuth2ManagerInterface {
    * @param string $access_token_secret
    *   The access token secret.
    * @param string $status
-   *   The tweet text.
+   *   The post text.
    */
   public function doPost($access_token, $access_token_secret, $status);
 
