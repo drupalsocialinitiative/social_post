@@ -12,5 +12,4 @@ use Drupal\social_api\AuthManager\OAuth2ManagerInterface
 interface PostManagerInterface extends OAuth2ManagerInterface {
 
   // Do nothing.
-
 }
