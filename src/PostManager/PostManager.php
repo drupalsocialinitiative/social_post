@@ -2,7 +2,7 @@
 
 namespace Drupal\social_post\PostManager;
 
-use Drupal\social_api\OAuth2Manager;
+use Drupal\social_api\AuthManager\OAuth2Manager;
 
 /**
  * Defines a basic PostManager.
