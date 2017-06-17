@@ -134,7 +134,7 @@ class SocialPostManager {
   public function updateToken($pluginId, $provider_user_id, $token) {
     $field_storage_configs = $this->entityTypeManager
       ->getStorage('social_auth')
-      ->loadByProperties(array('plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id));
+      ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id]);
 
     foreach ($field_storage_configs as $field_storage) {
       $field_storage->token = $token;
@@ -156,7 +156,7 @@ class SocialPostManager {
   public function deleteRecord($pluginId, $provider_user_id) {
     $this->entityTypeManager
       ->getStorage('social_auth')
-      ->loadByProperties(array('plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id))
+      ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id])
       ->delete();
   }
 
@@ -245,7 +245,7 @@ class SocialPostManager {
    *
    * @return unique identifier.
    */
-  function getSalt() {
+  public function getSalt() {
     $hash_salt = self::$instance->get('hash_salt');
 
     if (empty($hash_salt)) {
