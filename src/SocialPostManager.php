@@ -108,7 +108,7 @@ class SocialPostManager {
       'token' => $this->encryptToken($json_token),
     ];
 
-    $user_info = $this->entityTypeManager()->getStorage('social_post')->create($values);
+    $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
     if ($user_info) {
       return TRUE;
     }
