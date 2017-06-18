@@ -1,8 +1,8 @@
 services:
-  social_auth.user_manager:
+  social_post.user_manager:
     class: Drupal\social_post\SocialPostManager
     arguments:
-      - '@entity.query'
-      - '@entity_type.manager'
-      - '@current_user'
       - '@logger.factory'
+      - '@entity_type.manager'
+      - '@entity.query'
+      - '@current_user'

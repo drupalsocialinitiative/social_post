@@ -47,7 +47,7 @@ class SocialPost extends ContentEntityBase implements ContentEntityInterface {
     // Name of the social network account associated.
     $fields['plugin_id'] = BaseFieldDefinition::create('string')
       ->setLabel(t('PLUGIN ID'))
-      ->setDescription(t('Social Network Name.'))
+      ->setDescription(t('Identifier for social post implementer.'))
       ->setReadOnly(TRUE);
 
     // Unique Account ID returned by the social network provider.
@@ -59,7 +59,7 @@ class SocialPost extends ContentEntityBase implements ContentEntityInterface {
     // Access Token returned by social network provider, used for autoposting.
     $fields['token'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Token'))
-      ->setDescription(t('Token Used For Autoposting'))
+      ->setDescription(t('The unique user ID in the provider.'))
       ->setReadOnly(TRUE);
 
     return $fields;

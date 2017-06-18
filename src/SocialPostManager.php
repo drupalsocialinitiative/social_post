@@ -48,7 +48,8 @@ class SocialPostManager {
     $this->entityTypeManager = $entity_type_manager;
     $this->entityQuery = $entityQuery;
     $this->currentUser = $current_user;
-    // Sets default plugin id.
+
+    $this->key = $this->getSalt();
     $this->setPluginId('social_post');
   }
 
@@ -99,8 +100,6 @@ class SocialPostManager {
     // Encode token into json format.
     $json_token = json_encode($token);
 
-    // Generate an initialization vector to be used for encyrption.
-    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
     // Add user record.
     $values = [
       'user_id' => $user_id,
@@ -133,7 +132,7 @@ class SocialPostManager {
    */
   public function updateToken($pluginId, $provider_user_id, $token) {
     $field_storage_configs = $this->entityTypeManager
-      ->getStorage('social_auth')
+      ->getStorage('social_post')
       ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id]);
 
     foreach ($field_storage_configs as $field_storage) {
@@ -155,7 +154,7 @@ class SocialPostManager {
    */
   public function deleteRecord($pluginId, $provider_user_id) {
     $this->entityTypeManager
-      ->getStorage('social_auth')
+      ->getStorage('social_post')
       ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id])
       ->delete();
   }
@@ -173,7 +172,7 @@ class SocialPostManager {
   public function getToken($pluginId, $provider_user_id) {
 
     $storage = $this->entityTypeManager->getStorage('social_post');
-    // Perform query on social auth entity.
+    // Perform query on social post entity.
     $query = $this->entityQuery->get('social_post');
 
     // Check If user exist by using type and provider_user_id .
@@ -209,13 +208,17 @@ class SocialPostManager {
 
     // Remove the base64 encoding from our key.
     $encryption_key = base64_decode($key);
+
     // Generate an initialization vector.
     $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
+
     // Encrypt the data using AES 256 encryption in CBC mode
     // using our encryption key and initialization vector.
+
     $encrypted = openssl_encrypt($token, 'aes-256-cbc', $encryption_key, 0, $iv);
     // The $iv is just as important as the key for decrypting,
     // so save it with our encrypted data using a unique separator (::).
+
     return base64_encode($encrypted . '::' . $iv);
   }
 
