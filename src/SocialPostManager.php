@@ -14,7 +14,7 @@ class SocialPostManager {
 
   protected $loggerFactory;
   protected $entityQuery;
-  protected $entity_type_manager;
+  protected $entityTypeManager;
   protected $currentUser;
 
   /**
@@ -119,7 +119,7 @@ class SocialPostManager {
   }
 
   /**
-   * Update token of a praticular record.
+   * Update token of a particular record.
    *
    * @param string $pluginId
    *   Type of social network.
@@ -128,7 +128,9 @@ class SocialPostManager {
    * @param string $token
    *   Token provided by social_network.
    *
-   * @return True if updated.
+   * @return True
+   *   if updated else
+   *   False otherwise.
    */
   public function updateToken($pluginId, $provider_user_id, $token) {
     $field_storage_configs = $this->entityTypeManager
@@ -138,7 +140,14 @@ class SocialPostManager {
     foreach ($field_storage_configs as $field_storage) {
       $field_storage->token = $token;
       $field_storage->enforceIsNew(FALSE);
-      $field_storage->save();
+      $save_token = $field_storage->save();
+    }
+
+    if ($save_token) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
     }
   }
 
@@ -150,13 +159,22 @@ class SocialPostManager {
    * @param string $provider_user_id
    *   Unique Social ID returned by social network.
    *
-   * @return True if deleted.
+   * @return True
+   *   if deleted else
+   *   FALSE otherwise.
    */
   public function deleteRecord($pluginId, $provider_user_id) {
-    $this->entityTypeManager
+    $delete_record = $this->entityTypeManager
       ->getStorage('social_post')
       ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id])
       ->delete();
+
+    if ($delete_record) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
   }
 
   /**
@@ -167,7 +185,8 @@ class SocialPostManager {
    * @param string $provider_user_id
    *   Unique Social ID returned by social network.
    *
-   * @return Token in array format
+   * @return Token
+   *   in array format
    */
   public function getToken($pluginId, $provider_user_id) {
 
@@ -201,7 +220,8 @@ class SocialPostManager {
    * @param string $token
    *   Tokens provided by social provider.
    *
-   * @return Encrypted token in array format
+   * @return Encrypted_token
+   *   which is in JSON format.
    */
   private function encryptToken($token) {
     $key = $this->key;
@@ -214,11 +234,10 @@ class SocialPostManager {
 
     // Encrypt the data using AES 256 encryption in CBC mode
     // using our encryption key and initialization vector.
-
     $encrypted = openssl_encrypt($token, 'aes-256-cbc', $encryption_key, 0, $iv);
+
     // The $iv is just as important as the key for decrypting,
     // so save it with our encrypted data using a unique separator (::).
-
     return base64_encode($encrypted . '::' . $iv);
   }
 
@@ -228,7 +247,8 @@ class SocialPostManager {
    * @param string $token
    *   Encrypted token stored in database.
    *
-   * @return decrypted token.
+   * @return token
+   *   in JSON format.
    */
   private function decryptToken($token) {
     $key = $this->key;
@@ -246,7 +266,8 @@ class SocialPostManager {
   /**
    * Get salt for this drupal installation.
    *
-   * @return unique identifier.
+   * @return hash_salt
+   *   Used to decrypt and encrypt the data.
    */
   public function getSalt() {
     $hash_salt = self::$instance->get('hash_salt');
