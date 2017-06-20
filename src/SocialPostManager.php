@@ -186,7 +186,7 @@ class SocialPostManager {
    *   Unique Social ID returned by social network.
    *
    * @return Token
-   *   in array format
+   *   in array format.
    */
   public function getToken($pluginId, $provider_user_id) {
 
@@ -221,7 +221,7 @@ class SocialPostManager {
    *   Tokens provided by social provider.
    *
    * @return Encrypted_token
-   *   which is in JSON format.
+   *   to be stored in database.
    */
   private function encryptToken($token) {
     $key = $this->key;
@@ -260,7 +260,6 @@ class SocialPostManager {
     // our unique separator used was "::".
     list($encrypted_data, $iv) = explode('::', base64_decode($token), 2);
     return openssl_decrypt($encrypted_data, 'aes-256-cbc', $encryption_key, 0, $iv);
-
   }
 
   /**
