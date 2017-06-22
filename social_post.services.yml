@@ -1,5 +1,5 @@
 services:
-  social_post.user_manager:
+  social_post.post_manager:
     class: Drupal\social_post\SocialPostManager
     arguments:
       - '@logger.factory'
