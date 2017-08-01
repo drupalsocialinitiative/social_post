@@ -6,3 +6,10 @@ services:
       - '@entity_type.manager'
       - '@entity.query'
       - '@current_user'
+      - '@social_post.social_post_data_handler'
+      - '@router.request_context'
+
+  social_post.social_post_data_handler:
+      class: Drupal\social_post\SocialPostDataHandler
+      arguments:
+       - '@session'

@@ -6,6 +6,7 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\Session\AccountProxy;
+use Drupal\Core\Routing\RequestContext;
 
 /**
  * Contains all logic that is related to Drupal user management.
@@ -32,6 +33,20 @@ class SocialPostManager {
   protected $pluginId;
 
   /**
+   * Session keys to nullify is user could not be logged in.
+   *
+   * @var \Drupal\social_auth\SocialAuthDataHandler
+   */
+  protected $dataHandler;
+
+  /**
+   * The config factory object.
+   *
+   * @var \Drupal\Core\Config\ConfigFactory
+   */
+  protected $config;
+
+  /**
    * Constructor.
    *
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
@@ -42,12 +57,18 @@ class SocialPostManager {
    *   Used to get entity query object for this entity type.
    * @param \Drupal\Core\Session\AccountProxy $current_user
    *   Used to get current active user.
+   * @param \Drupal\social_post\SocialPostDataHandler $social_post_data_handler
+   *   Class to interact with session.
+   * @param \Drupal\Core\Routing\RequestContext $requestContext
+   *   The Request Context Object.
    */
-  public function __construct(LoggerChannelFactoryInterface $logger_factory, EntityTypeManagerInterface $entity_type_manager, QueryFactory $entityQuery, AccountProxy $current_user) {
+  public function __construct(LoggerChannelFactoryInterface $logger_factory, EntityTypeManagerInterface $entity_type_manager, QueryFactory $entityQuery, AccountProxy $current_user, SocialPostDataHandler $social_post_data_handler, RequestContext $requestContext) {
     $this->loggerFactory = $logger_factory;
     $this->entityTypeManager = $entity_type_manager;
     $this->entityQuery = $entityQuery;
     $this->currentUser = $current_user;
+    $this->dataHandler = $social_post_data_handler;
+    $this->requestContext = $requestContext;
 
     $this->key = $this->getSalt();
     $this->setPluginId('social_post');
@@ -80,6 +101,40 @@ class SocialPostManager {
   }
 
   /**
+   * Checks if user exist in entity.
+   *
+   * @param string $provider_user_id
+   *   User's name on Provider.
+   *
+   * @return false
+   *   if user doesn't exist
+   *   Else return Drupal User Id associate with the account.
+   */
+  public function checkIfUserExists($provider_user_id) {
+    $storage = $this->entityTypeManager->getStorage('social_post');
+    // Perform query on social auth entity.
+    $query = $this->entityQuery->get('social_post');
+
+    // Check If user exist by using type and provider_user_id .
+    $social_post_user = $query->condition('plugin_id', $this->pluginId)
+      ->condition('provider_user_id', $provider_user_id)
+      ->execute();
+    if (!$social_post_user) {
+      return FALSE;
+    }
+    $user_data = $storage->load(array_values($social_post_user)[0]);
+    return $user_data->get('user_id')->getValue()[0]["target_id"];
+  }
+
+  /**
+   * Get ID of logged in user.
+   * @return int user currentUser->id()
+   */
+  public function getCurrentUser() {
+    return $this->currentUser->id();
+  }
+
+  /**
    * Add user record in Social Post Entity.
    *
    * @param string $pluginId
@@ -96,10 +151,11 @@ class SocialPostManager {
   public function addRecord($pluginId, $provider_user_id, $token) {
     // Get User ID of logged in user.
     $user_id = $this->currentUser->id();
-
+    if ($this->checkIfUserExists($provider_user_id)) {
+      return FALSE;
+    }
     // Encode token into json format.
     $json_token = json_encode($token);
-
     // Add user record.
     $values = [
       'user_id' => $user_id,
@@ -109,6 +165,10 @@ class SocialPostManager {
     ];
 
     $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
+
+    // Save the entity.
+    $user_info->save();
+
     if ($user_info) {
       return TRUE;
     }
@@ -269,8 +329,8 @@ class SocialPostManager {
    *   Used to decrypt and encrypt the data.
    */
   public function getSalt() {
-    $hash_salt = self::$instance->get('hash_salt');
-
+    // $hash_salt = self::$instance->get('hash_salt');.
+    $hash_salt = 3243;
     if (empty($hash_salt)) {
       return FALSE;
     }
