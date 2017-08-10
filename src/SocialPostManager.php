@@ -115,15 +115,36 @@ class SocialPostManager {
     // Perform query on social auth entity.
     $query = $this->entityQuery->get('social_post');
 
-    // Check If user exist by using type and provider_user_id .
-    $social_post_user = $query->condition('plugin_id', $this->pluginId)
+    // Check If user exist by using type and provider_user_id . Change this for social post
+    $social_post_user = $query->condition('plugin_id', 'social_post_facebook')
       ->condition('provider_user_id', $provider_user_id)
       ->execute();
+
     if (!$social_post_user) {
       return FALSE;
     }
     $user_data = $storage->load(array_values($social_post_user)[0]);
     return $user_data->get('user_id')->getValue()[0]["target_id"];
+  }
+
+  /**
+   * Checks if user exist in entity.
+   *
+   * @param string $provider_user_id
+   *   User's name on Provider.
+   *
+   * @return false
+   *   if user doesn't exist
+   *   Else return Drupal User Id associate with the account.
+   */
+  public function getList($pluginId ,$user_id) {
+    $storage = $this->entityTypeManager->getStorage('social_post');
+    // Perform query on social auth entity.
+    $accounts = $storage->loadByProperties([
+      'user_id' => $user_id,
+      'plugin_id' => $pluginId
+    ]);
+    return $accounts;
   }
 
   /**
@@ -148,7 +169,7 @@ class SocialPostManager {
    *   if User record was created or
    *   False otherwise
    */
-  public function addRecord($pluginId, $provider_user_id, $token) {
+  public function addRecord($pluginId, $provider_user_id, $token, $name = '', $additional_data ='') {
     // Get User ID of logged in user.
     $user_id = $this->currentUser->id();
     if ($this->checkIfUserExists($provider_user_id)) {
@@ -162,6 +183,8 @@ class SocialPostManager {
       'plugin_id' => $pluginId,
       'provider_user_id' => $provider_user_id,
       'token' => $this->encryptToken($json_token),
+      'name' => $name,
+      'additional_data' => $additional_data
     ];
 
     $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
