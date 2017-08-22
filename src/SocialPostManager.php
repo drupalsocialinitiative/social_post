@@ -276,8 +276,8 @@ class SocialPostManager {
    * @param string $token
    *   Tokens provided by social provider.
    *
-   * @return Encrypted_token
-   *   to be stored in database.
+   * @return string
+   *   Encrypted_token to be stored in database.
    */
   private function encryptToken($token) {
     $key = $this->key;
