@@ -166,9 +166,8 @@ class SocialPostManager {
    * @param string $token
    *   Token to be used for autoposting.
    *
-   * @return True
-   *   if User record was created or
-   *   False otherwise
+   * @return bool
+   *   True if User record was created or False otherwise
    */
   public function addRecord($pluginId, $provider_user_id, $token, $name = '', $additional_data = '') {
     // Get User ID of logged in user.
@@ -212,14 +211,15 @@ class SocialPostManager {
    * @param string $token
    *   Token provided by social_network.
    *
-   * @return True
-   *   if updated else
-   *   False otherwise.
+   * @return bool
+   *   True if updated else False otherwise.
    */
   public function updateToken($pluginId, $provider_user_id, $token) {
     $field_storage_configs = $this->entityTypeManager
       ->getStorage('social_post')
       ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id]);
+
+    $save_token = ''
 
     foreach ($field_storage_configs as $field_storage) {
       $field_storage->token = $token;
@@ -236,32 +236,6 @@ class SocialPostManager {
   }
 
   /**
-   * Delete record from entity table.
-   *
-   * @param string $pluginId
-   *   Type of social network.
-   * @param string $provider_user_id
-   *   Unique Social ID returned by social network.
-   *
-   * @return True
-   *   if deleted else
-   *   FALSE otherwise.
-   */
-  public function deleteRecord($pluginId, $provider_user_id) {
-    $delete_record = $this->entityTypeManager
-      ->getStorage('social_post')
-      ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id])
-      ->delete();
-
-    if ($delete_record) {
-      return TRUE;
-    }
-    else {
-      return FALSE;
-    }
-  }
-
-  /**
    * Used to get token for autoposting by implementers.
    *
    * @param string $pluginId
@@ -269,8 +243,8 @@ class SocialPostManager {
    * @param string $provider_user_id
    *   Unique Social ID returned by social network.
    *
-   * @return Token
-   *   in array format.
+   * @return string
+   *   Token in array format.
    */
   public function getToken($pluginId, $provider_user_id) {
 
@@ -331,8 +305,8 @@ class SocialPostManager {
    * @param string $token
    *   Encrypted token stored in database.
    *
-   * @return token
-   *   in JSON format.
+   * @return string
+   *   token in JSON format.
    */
   private function decryptToken($token) {
     $key = $this->key;
