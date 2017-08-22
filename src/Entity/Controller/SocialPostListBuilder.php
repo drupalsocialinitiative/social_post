@@ -63,6 +63,8 @@ class SocialPostListBuilder extends EntityListBuilder {
    *   The entity storage for the user entity.
    * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
    *   The url generator.
+   * @param \Drupal\Core\Routing\CurrentRouteMatch $route_match
+   *   The current route match.
    */
   public function __construct(EntityTypeInterface $entity_type,
                               EntityStorageInterface $storage,
@@ -100,9 +102,8 @@ class SocialPostListBuilder extends EntityListBuilder {
       $user = $this->userEntity->load($entity->getUserId());
       $row['user'] = $user->toLink();
       return $row + parent::buildRow($entity);
-      return parent::buildRow($entity);
     }
-
+    return parent::buildRow($entity);
   }
 
   /**
@@ -115,7 +116,14 @@ class SocialPostListBuilder extends EntityListBuilder {
 
     $operations['delete'] = [
       'title' => t('Delete'),
-      'url' => Url::fromRoute('entity.social_post.delete_form', ['provider' => $provider, 'social_post' => $entity->getId(), 'user' => TRUE]),
+      'url' => Url::fromRoute(
+        'entity.social_post.delete_form',
+        [
+          'provider' => $provider,
+          'social_post' => $entity->getId(),
+          'user' => TRUE,
+        ]
+      ),
     ];
 
     return $operations;

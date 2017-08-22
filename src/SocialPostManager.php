@@ -115,7 +115,8 @@ class SocialPostManager {
     // Perform query on social auth entity.
     $query = $this->entityQuery->get('social_post');
 
-    // Check If user exist by using type and provider_user_id . Change this for social post.
+    // Check If user exist by using type and provider_user_id .
+    // Change this for social post.
     $social_post_user = $query->condition('plugin_id', 'social_post_facebook')
       ->condition('provider_user_id', $provider_user_id)
       ->execute();
@@ -130,7 +131,9 @@ class SocialPostManager {
   /**
    * Checks if user exist in entity.
    *
-   * @param string $provider_user_id
+   * @param string $pluginId
+   *   Plugin Id.
+   * @param string $user_id
    *   User's name on Provider.
    *
    * @return false
@@ -150,7 +153,8 @@ class SocialPostManager {
   /**
    * Get ID of logged in user.
    *
-   * @return int user currentUser->id()
+   * @return int
+   *   User Id.
    */
   public function getCurrentUser() {
     return $this->currentUser->id();
@@ -165,6 +169,10 @@ class SocialPostManager {
    *   Unique Social ID returned by social network.
    * @param string $token
    *   Token to be used for autoposting.
+   * @param string $name
+   *   Name of user provided by social provider.
+   * @param string $additional_data
+   *   Additional data to be stored in record.
    *
    * @return bool
    *   True if User record was created or False otherwise
