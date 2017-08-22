@@ -41,35 +41,50 @@ class SocialPost extends ContentEntityBase implements ContentEntityInterface {
   use EntityChangedTrait;
 
   /**
+   * Gets ID provided by social network.
    *
+   * @return string
+   *   Social network ID.
    */
   public function getSocialNetworkID() {
     return $this->get('provider_user_id')->value;
   }
 
   /**
+   * Gets social post implementer name.
    *
+   * @return string
+   *   Impelementer name.
    */
   public function getSocialNetworkName() {
     return $this->get('plugin_id')->value;
   }
 
   /**
+   * Gets name provided by the Social Provider.
    *
+   * @return string
+   *   Name provided by the Social Provider
    */
   public function getName() {
     return $this->get('name')->value;
   }
 
   /**
+   * Gets ID provided by the Social Provider.
    *
+   * @return string
+   *   ID
    */
   public function getId() {
     return (int) $this->get('id')->value;
   }
 
   /**
+   * Gets id of user accociated.
    *
+   * @return int
+   *   User ID.
    */
   public function getUserId() {
     return (int) $this->get('user_id')->target;
