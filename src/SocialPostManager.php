@@ -71,7 +71,6 @@ class SocialPostManager {
     $this->requestContext = $requestContext;
 
     $this->key = $this->getSalt();
-    $this->setPluginId('social_post');
   }
 
   /**
@@ -112,9 +111,9 @@ class SocialPostManager {
    *   if user doesn't exist
    *   Else return Drupal User Id associate with the account.
    */
-  public function checkIfUserExists($provider_user_id, $plugin_id) {
+  public function checkIfUserExists($provider_user_id) {
     // Check user for social post implementer.
-    $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->getPluginId(), 'provider_user_id' => $provider_user_id]));
+    $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->pluginId, 'provider_user_id' => $provider_user_id]));
 
     if (!$user_data) {
       return FALSE;
@@ -171,7 +170,7 @@ class SocialPostManager {
    * @return bool
    *   True if User record was created or False otherwise
    */
-  public function addRecord($plugin_id, $provider_user_id, $token, $name = '', $additional_data = '') {
+  public function addRecord($provider_user_id, $token, $name = '', $additional_data = '') {
     // Get User ID of logged in user.
     $user_id = $this->currentUser->id();
     if ($this->checkIfUserExists($provider_user_id)) {
@@ -182,7 +181,7 @@ class SocialPostManager {
     // Add user record.
     $values = [
       'user_id' => $user_id,
-      'plugin_id' => $plugin_id,
+      'plugin_id' => $this->pluginId,
       'provider_user_id' => $provider_user_id,
       'token' => $this->encryptToken($json_token),
       'name' => $name,
@@ -248,19 +247,14 @@ class SocialPostManager {
    * @return string
    *   Token in array format.
    */
-  public function getToken($plugin_id, $provider_user_id) {
+  public function getToken($provider_user_id) {
 
     $storage = $this->entityTypeManager->getStorage('social_post');
     // Perform query on social post entity.
     $query = $this->entityQuery->get('social_post');
 
-    // Check If user exist by using type and provider_user_id .
-    $social_post_record = $query->condition('plugin_id', $plugin_id)
-      ->condition('provider_user_id', $provider_user_id)
-      ->execute();
-
     // Check user for social post implementer.
-    $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->getPluginId(), 'provider_user_id' => $provider_user_id]));
+    $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->pluginId, 'provider_user_id' => $provider_user_id]));
 
 
     if (!$social_post_record) {
@@ -310,7 +304,7 @@ class SocialPostManager {
    *   Encrypted token stored in database.
    *
    * @return string
-   *   token in JSON format.
+   *   Token in JSON format.
    */
   private function decryptToken($token) {
     $key = $this->key;
@@ -327,8 +321,8 @@ class SocialPostManager {
   /**
    * Get salt for this drupal installation.
    *
-   * @return hash_salt
-   *   Used to decrypt and encrypt the data.
+   * @return string
+   *   Hash salt.
    */
   public function getSalt() {
     // $hash_salt = self::$instance->get('hash_salt');.
