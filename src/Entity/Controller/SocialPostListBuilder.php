@@ -90,21 +90,22 @@ class SocialPostListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
-      $provider = $this->routeMatch->getParameter('provider');
-      $socialNetworkName =$entity->getSocialNetworkName();
-      if($socialNetworkName == $provider) {
-          /* @var $entity \Drupal\social_post\Entity\SocialPost */
-          $row['social_id'] = $provider;
-          $row['social_post_name'] = $entity->getName();
+    $provider = $this->routeMatch->getParameter('provider');
+    $socialNetworkName = $entity->getSocialNetworkName();
+    if ($socialNetworkName == 'social_post_' . $provider) {
+      /* @var $entity \Drupal\social_post\Entity\SocialPost */
+      $row['social_id'] = $entity->getSocialNetworkID();
+      $row['social_post_name'] = $entity->getName();
 
-          $user = $this->userEntity->load($entity->getUserId());
-          $row['user'] = $user->toLink();
-          return $row + parent::buildRow($entity);
-      }
+      $user = $this->userEntity->load($entity->getUserId());
+      $row['user'] = $user->toLink();
+      return $row + parent::buildRow($entity);
       return parent::buildRow($entity);
+    }
+
   }
 
-    /**
+  /**
    * {@inheritdoc}
    */
   public function getDefaultOperations(EntityInterface $entity) {
@@ -112,13 +113,12 @@ class SocialPostListBuilder extends EntityListBuilder {
     $provider = $this->routeMatch->getParameter('provider');
     $operations = parent::getDefaultOperations($entity);
 
-    $operations['delete'] = array(
-          'title' => t('Delete'),
-          'url' => Url::fromRoute('entity.social_post.delete_form', ['provider' => $provider, 'social_post' => $entity->getId(), 'user' => TRUE]),
-    );
+    $operations['delete'] = [
+      'title' => t('Delete'),
+      'url' => Url::fromRoute('entity.social_post.delete_form', ['provider' => $provider, 'social_post' => $entity->getId(), 'user' => TRUE]),
+    ];
 
     return $operations;
   }
-
 
 }

@@ -47,8 +47,6 @@ class SocialPostEntityDeleteForm extends ContentEntityDeleteForm {
     $this->routeMatch = $route_match;
   }
 
-
-
   /**
    * {@inheritdoc}
    */
@@ -67,8 +65,7 @@ class SocialPostEntityDeleteForm extends ContentEntityDeleteForm {
   /**
    * {@inheritdoc}
    */
-  protected function getRedirectUrl()
-  {
+  protected function getRedirectUrl() {
 
     $uid = $this->routeMatch->getParameter('user');
     $provider = $this->routeMatch->getParameter('provider');
@@ -92,4 +89,5 @@ class SocialPostEntityDeleteForm extends ContentEntityDeleteForm {
     }
     return Url::fromRoute('entity.social_post.collection', ['provider' => $provider]);
   }
+
 }

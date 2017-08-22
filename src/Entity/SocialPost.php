@@ -40,23 +40,37 @@ use Drupal\Core\Entity\EntityChangedTrait;
 class SocialPost extends ContentEntityBase implements ContentEntityInterface {
   use EntityChangedTrait;
 
+  /**
+   *
+   */
   public function getSocialNetworkID() {
     return $this->get('provider_user_id')->value;
   }
 
+  /**
+   *
+   */
   public function getSocialNetworkName() {
     return $this->get('plugin_id')->value;
   }
 
+  /**
+   *
+   */
   public function getName() {
     return $this->get('name')->value;
   }
 
+  /**
+   *
+   */
   public function getId() {
     return (int) $this->get('id')->value;
   }
 
-
+  /**
+   *
+   */
   public function getUserId() {
     return (int) $this->get('user_id')->target;
   }

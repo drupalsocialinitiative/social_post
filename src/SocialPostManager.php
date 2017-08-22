@@ -115,7 +115,7 @@ class SocialPostManager {
     // Perform query on social auth entity.
     $query = $this->entityQuery->get('social_post');
 
-    // Check If user exist by using type and provider_user_id . Change this for social post
+    // Check If user exist by using type and provider_user_id . Change this for social post.
     $social_post_user = $query->condition('plugin_id', 'social_post_facebook')
       ->condition('provider_user_id', $provider_user_id)
       ->execute();
@@ -137,18 +137,19 @@ class SocialPostManager {
    *   if user doesn't exist
    *   Else return Drupal User Id associate with the account.
    */
-  public function getList($pluginId ,$user_id) {
+  public function getList($pluginId, $user_id) {
     $storage = $this->entityTypeManager->getStorage('social_post');
     // Perform query on social auth entity.
     $accounts = $storage->loadByProperties([
       'user_id' => $user_id,
-      'plugin_id' => $pluginId
+      'plugin_id' => $pluginId,
     ]);
     return $accounts;
   }
 
   /**
    * Get ID of logged in user.
+   *
    * @return int user currentUser->id()
    */
   public function getCurrentUser() {
@@ -169,7 +170,7 @@ class SocialPostManager {
    *   if User record was created or
    *   False otherwise
    */
-  public function addRecord($pluginId, $provider_user_id, $token, $name = '', $additional_data ='') {
+  public function addRecord($pluginId, $provider_user_id, $token, $name = '', $additional_data = '') {
     // Get User ID of logged in user.
     $user_id = $this->currentUser->id();
     if ($this->checkIfUserExists($provider_user_id)) {
@@ -184,7 +185,7 @@ class SocialPostManager {
       'provider_user_id' => $provider_user_id,
       'token' => $this->encryptToken($json_token),
       'name' => $name,
-      'additional_data' => $additional_data
+      'additional_data' => $additional_data,
     ];
 
     $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
