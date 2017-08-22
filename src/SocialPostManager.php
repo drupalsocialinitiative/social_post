@@ -104,8 +104,6 @@ class SocialPostManager {
    *
    * @param string $provider_user_id
    *   User's name on Provider.
-   * @param string $plugin_id
-   *   Plugin Id.
    *
    * @return false
    *   if user doesn't exist
@@ -156,8 +154,6 @@ class SocialPostManager {
   /**
    * Add user record in Social Post Entity.
    *
-   * @param string $plugin_id
-   *   Type of social network.
    * @param string $provider_user_id
    *   Unique Social ID returned by social network.
    * @param string $token
@@ -239,8 +235,6 @@ class SocialPostManager {
   /**
    * Used to get token for autoposting by implementers.
    *
-   * @param string $plugin_id
-   *   Type of social network.
    * @param string $provider_user_id
    *   Unique Social ID returned by social network.
    *
@@ -249,15 +243,10 @@ class SocialPostManager {
    */
   public function getToken($provider_user_id) {
 
-    $storage = $this->entityTypeManager->getStorage('social_post');
-    // Perform query on social post entity.
-    $query = $this->entityQuery->get('social_post');
-
     // Check user for social post implementer.
     $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->pluginId, 'provider_user_id' => $provider_user_id]));
 
-
-    if (!$social_post_record) {
+    if (!$user_data) {
       return FALSE;
     }
     else {
