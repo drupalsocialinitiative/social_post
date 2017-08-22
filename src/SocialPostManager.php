@@ -131,7 +131,7 @@ class SocialPostManager {
   /**
    * Checks if user exist in entity.
    *
-   * @param string $pluginId
+   * @param string $plugin_id
    *   Plugin Id.
    * @param string $user_id
    *   User's name on Provider.
@@ -140,12 +140,12 @@ class SocialPostManager {
    *   if user doesn't exist
    *   Else return Drupal User Id associate with the account.
    */
-  public function getList($pluginId, $user_id) {
+  public function getList($plugin_id, $user_id) {
     $storage = $this->entityTypeManager->getStorage('social_post');
     // Perform query on social auth entity.
     $accounts = $storage->loadByProperties([
       'user_id' => $user_id,
-      'plugin_id' => $pluginId,
+      'plugin_id' => $plugin_id,
     ]);
     return $accounts;
   }
@@ -163,7 +163,7 @@ class SocialPostManager {
   /**
    * Add user record in Social Post Entity.
    *
-   * @param string $pluginId
+   * @param string $plugin_id
    *   Type of social network.
    * @param string $provider_user_id
    *   Unique Social ID returned by social network.
@@ -177,7 +177,7 @@ class SocialPostManager {
    * @return bool
    *   True if User record was created or False otherwise
    */
-  public function addRecord($pluginId, $provider_user_id, $token, $name = '', $additional_data = '') {
+  public function addRecord($plugin_id, $provider_user_id, $token, $name = '', $additional_data = '') {
     // Get User ID of logged in user.
     $user_id = $this->currentUser->id();
     if ($this->checkIfUserExists($provider_user_id)) {
@@ -188,7 +188,7 @@ class SocialPostManager {
     // Add user record.
     $values = [
       'user_id' => $user_id,
-      'plugin_id' => $pluginId,
+      'plugin_id' => $plugin_id,
       'provider_user_id' => $provider_user_id,
       'token' => $this->encryptToken($json_token),
       'name' => $name,
@@ -212,7 +212,7 @@ class SocialPostManager {
   /**
    * Update token of a particular record.
    *
-   * @param string $pluginId
+   * @param string $plugin_id
    *   Type of social network.
    * @param string $provider_user_id
    *   Unique Social ID returned by social network.
@@ -222,10 +222,10 @@ class SocialPostManager {
    * @return bool
    *   True if updated else False otherwise.
    */
-  public function updateToken($pluginId, $provider_user_id, $token) {
+  public function updateToken($plugin_id, $provider_user_id, $token) {
     $field_storage_configs = $this->entityTypeManager
       ->getStorage('social_post')
-      ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id]);
+      ->loadByProperties(['plugin_id' => $plugin_id, 'provider_user_id' => $provider_user_id]);
 
     $save_token = '';
 
@@ -246,7 +246,7 @@ class SocialPostManager {
   /**
    * Used to get token for autoposting by implementers.
    *
-   * @param string $pluginId
+   * @param string $plugin_id
    *   Type of social network.
    * @param string $provider_user_id
    *   Unique Social ID returned by social network.
@@ -254,14 +254,14 @@ class SocialPostManager {
    * @return string
    *   Token in array format.
    */
-  public function getToken($pluginId, $provider_user_id) {
+  public function getToken($plugin_id, $provider_user_id) {
 
     $storage = $this->entityTypeManager->getStorage('social_post');
     // Perform query on social post entity.
     $query = $this->entityQuery->get('social_post');
 
     // Check If user exist by using type and provider_user_id .
-    $social_post_record = $query->condition('plugin_id', $pluginId)
+    $social_post_record = $query->condition('plugin_id', $plugin_id)
       ->condition('provider_user_id', $provider_user_id)
       ->execute();
 
