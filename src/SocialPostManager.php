@@ -219,7 +219,7 @@ class SocialPostManager {
       ->getStorage('social_post')
       ->loadByProperties(['plugin_id' => $pluginId, 'provider_user_id' => $provider_user_id]);
 
-    $save_token = ''
+    $save_token = '';
 
     foreach ($field_storage_configs as $field_storage) {
       $field_storage->token = $token;
