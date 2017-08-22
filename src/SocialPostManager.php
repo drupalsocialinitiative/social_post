@@ -105,26 +105,20 @@ class SocialPostManager {
    *
    * @param string $provider_user_id
    *   User's name on Provider.
+   * @param string $plugin_id
+   *   Plugin Id.
    *
    * @return false
    *   if user doesn't exist
    *   Else return Drupal User Id associate with the account.
    */
-  public function checkIfUserExists($provider_user_id) {
-    $storage = $this->entityTypeManager->getStorage('social_post');
-    // Perform query on social auth entity.
-    $query = $this->entityQuery->get('social_post');
+  public function checkIfUserExists($provider_user_id, $plugin_id) {
+    // Check user for social post implementer.
+    $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->getPluginId(), 'provider_user_id' => $provider_user_id]));
 
-    // Check If user exist by using type and provider_user_id .
-    // Change this for social post.
-    $social_post_user = $query->condition('plugin_id', 'social_post_facebook')
-      ->condition('provider_user_id', $provider_user_id)
-      ->execute();
-
-    if (!$social_post_user) {
+    if (!$user_data) {
       return FALSE;
     }
-    $user_data = $storage->load(array_values($social_post_user)[0]);
     return $user_data->get('user_id')->getValue()[0]["target_id"];
   }
 
@@ -265,7 +259,9 @@ class SocialPostManager {
       ->condition('provider_user_id', $provider_user_id)
       ->execute();
 
-    $user_data = $storage->load(reset($social_post_record));
+    // Check user for social post implementer.
+    $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->getPluginId(), 'provider_user_id' => $provider_user_id]));
+
 
     if (!$social_post_record) {
       return FALSE;
