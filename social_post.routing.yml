@@ -5,3 +5,20 @@ social_post.integrations:
     _title: 'Autoposting settings'
   requirements:
     _permission: 'administer social api autoposting'
+
+entity.social_post.collection:
+  path: '/admin/config/social-api/social-post/{provider}/users'
+  defaults:
+    _entity_list: 'social_post'
+    _title: 'Social Post User List'
+  requirements:
+    _permission: 'view social post user entities'
+
+entity.social_post.delete_form:
+  path: '/admin/config/social-api/social-post/{provider}/users/{social_post}/delete/{user}'
+  defaults:
+    _entity_form: 'social_post.delete'
+    _title: 'Delete user'
+    user: FALSE
+  requirements:
+    _permission: 'delete own social post user account'
