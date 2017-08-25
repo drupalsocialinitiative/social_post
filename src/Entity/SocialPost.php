@@ -15,7 +15,7 @@ use Drupal\Core\Entity\EntityChangedTrait;
  *
  * @ContentEntityType(
  *   id = "social_post",
- *   label = @Translation("SocialPost"),
+ *   label = @Translation("Social Post"),
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
  *     "list_builder" = "Drupal\social_post\Entity\Controller\SocialPostListBuilder",

@@ -10,4 +10,6 @@ services:
       - '@router.request_context'
 
   social_post.social_post_data_handler:
-      class: Drupal\social_post\SocialPostDataHandler
+    class: Drupal\social_post\SocialPostDataHandler
+    arguments:
+      - '@session'

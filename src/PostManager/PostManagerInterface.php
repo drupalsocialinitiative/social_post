@@ -13,3 +13,4 @@ interface PostManagerInterface extends OAuth2ManagerInterface {
 
   // Do nothing.
 }
+
