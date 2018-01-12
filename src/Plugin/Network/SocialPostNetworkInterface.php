@@ -9,5 +9,9 @@ use Drupal\social_api\Plugin\NetworkInterface;
  */
 interface SocialPostNetworkInterface extends NetworkInterface {
 
+  /**
+   * Executes posting request.
+   */
+  public function post();
 
 }

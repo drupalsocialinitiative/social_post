@@ -32,8 +32,8 @@ use Drupal\Core\Entity\EntityChangedTrait;
  *     "uuid" = "uuid",
  *   },
  *   links = {
- *     "delete-form" = "/admin/config/social-api/social-post/{provider}/users/{social_post_user}/delete",
- *     "collection" = "/admin/config/social-api/social-post/{provider}/users"
+ *     "delete-form" = "/admin/config/social-api/social-post/users/{social_post}/delete/{provider}/{user}",
+ *     "collection" = "/admin/config/social-api/social-post/users/{provider}"
  *   }
  * )
  */
@@ -41,12 +41,12 @@ class SocialPost extends ContentEntityBase implements ContentEntityInterface {
   use EntityChangedTrait;
 
   /**
-   * Gets ID provided by social network.
+   * Gets User ID in provider.
    *
    * @return string
-   *   Social network ID.
+   *   User ID in provider.
    */
-  public function getSocialNetworkID() {
+  public function getProviderUserId() {
     return $this->get('provider_user_id')->value;
   }
 
@@ -56,7 +56,7 @@ class SocialPost extends ContentEntityBase implements ContentEntityInterface {
    * @return string
    *   Impelementer name.
    */
-  public function getSocialNetworkName() {
+  public function getPluginId() {
     return $this->get('plugin_id')->value;
   }
 
@@ -87,7 +87,7 @@ class SocialPost extends ContentEntityBase implements ContentEntityInterface {
    *   User ID.
    */
   public function getUserId() {
-    return (int) $this->get('user_id')->target;
+    return (int) $this->get('user_id')->getValue()[0]['target_id'];
   }
 
   /**

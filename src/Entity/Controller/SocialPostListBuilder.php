@@ -9,6 +9,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Url;
+use Drupal\social_post\Entity\SocialPost;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -92,11 +93,11 @@ class SocialPostListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
+    /* @var \Drupal\social_post\Entity\SocialPost $entity */
     $provider = $this->routeMatch->getParameter('provider');
-    $socialNetworkName = $entity->getSocialNetworkName();
+    $socialNetworkName = $entity->getPluginId();
     if ($socialNetworkName == 'social_post_' . $provider) {
-      /* @var $entity \Drupal\social_post\Entity\SocialPost */
-      $row['social_id'] = $entity->getSocialNetworkID();
+      $row['provider_user_id'] = $entity->getProviderUserId();
       $row['social_post_name'] = $entity->getName();
 
       $user = $this->userEntity->load($entity->getUserId());
@@ -110,7 +111,7 @@ class SocialPostListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function getDefaultOperations(EntityInterface $entity) {
-    /** @var \Drupal\Core\Config\Entity\ConfigEntityInterface $entity */
+    /* @var \Drupal\social_post\Entity\SocialPost $entity */
     $provider = $this->routeMatch->getParameter('provider');
     $operations = parent::getDefaultOperations($entity);
 
@@ -121,7 +122,7 @@ class SocialPostListBuilder extends EntityListBuilder {
         [
           'provider' => $provider,
           'social_post' => $entity->getId(),
-          'user' => TRUE,
+          'user' => FALSE,
         ]
       ),
     ];

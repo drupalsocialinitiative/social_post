@@ -2,14 +2,11 @@ services:
   social_post.post_manager:
     class: Drupal\social_post\SocialPostManager
     arguments:
-      - '@logger.factory'
       - '@entity_type.manager'
-      - '@entity.query'
       - '@current_user'
-      - '@social_post.social_post_data_handler'
-      - '@router.request_context'
+      - '@social_post.data_handler'
 
-  social_post.social_post_data_handler:
+  social_post.data_handler:
     class: Drupal\social_post\SocialPostDataHandler
     arguments:
       - '@session'

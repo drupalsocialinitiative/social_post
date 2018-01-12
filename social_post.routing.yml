@@ -6,19 +6,21 @@ social_post.integrations:
   requirements:
     _permission: 'administer social api autoposting'
 
+entity.social_post.delete_form:
+  path: '/admin/config/social-api/social-post/users/{social_post}/delete/{provider}/{user}'
+  defaults:
+    _entity_form: 'social_post.delete'
+    _title: 'Delete user'
+    provider: 'provider'
+    user: FALSE # A drupal user id will be passed instead if the form is invoked from user edit form
+  requirements:
+    _permission: 'delete own social post user account'
+
 entity.social_post.collection:
   path: '/admin/config/social-api/social-post/{provider}/users'
   defaults:
     _entity_list: 'social_post'
     _title: 'Social Post User List'
+    provider: 'provider'
   requirements:
     _permission: 'view social post user entities'
-
-entity.social_post.delete_form:
-  path: '/admin/config/social-api/social-post/{provider}/users/{social_post}/delete/{user}'
-  defaults:
-    _entity_form: 'social_post.delete'
-    _title: 'Delete user'
-    user: FALSE
-  requirements:
-    _permission: 'delete own social post user account'

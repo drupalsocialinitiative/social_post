@@ -2,28 +2,35 @@
 
 namespace Drupal\social_post;
 
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\Session\AccountProxy;
-use Drupal\Core\Routing\RequestContext;
+use Drupal\Core\Site\Settings;
 
 /**
  * Contains all logic that is related to Drupal user management.
  */
 class SocialPostManager {
 
-  protected $loggerFactory;
-  protected $entityQuery;
+  /**
+   * The Entity Type Manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
   protected $entityTypeManager;
+
+  /**
+   * The current logged in Drupal user.
+   *
+   * @var \Drupal\Core\Session\AccountProxy
+   */
   protected $currentUser;
 
   /**
-   * The unique salt generated for drupal installation.
+   * The Social Post data handler.
    *
-   * @var string
+   * @var \Drupal\social_auth\SocialAuthDataHandler
    */
-  protected $key;
+  protected $dataHandler;
 
   /**
    * The implementer plugin id.
@@ -35,40 +42,33 @@ class SocialPostManager {
   /**
    * Session keys to nullify is user could not be logged in.
    *
-   * @var \Drupal\social_auth\SocialAuthDataHandler
+   * @var array
    */
-  protected $dataHandler;
+  protected $sessionKeys;
 
   /**
-   * The config factory object.
+   * The unique salt generated for drupal installation.
    *
-   * @var \Drupal\Core\Config\ConfigFactory
+   * @var string
    */
-  protected $config;
+  protected $key;
 
   /**
    * Constructor.
    *
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
-   *   Used for logging errors.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   Used for loading and creating Drupal user objects.
-   * @param \Drupal\Core\Entity\Query\QueryFactory $entityQuery
-   *   Used to get entity query object for this entity type.
    * @param \Drupal\Core\Session\AccountProxy $current_user
    *   Used to get current active user.
-   * @param \Drupal\social_post\SocialPostDataHandler $social_post_data_handler
+   * @param \Drupal\social_post\SocialPostDataHandler $data_handler
    *   Class to interact with session.
-   * @param \Drupal\Core\Routing\RequestContext $requestContext
-   *   The Request Context Object.
    */
-  public function __construct(LoggerChannelFactoryInterface $logger_factory, EntityTypeManagerInterface $entity_type_manager, QueryFactory $entityQuery, AccountProxy $current_user, SocialPostDataHandler $social_post_data_handler, RequestContext $requestContext) {
-    $this->loggerFactory = $logger_factory;
+  public function __construct(EntityTypeManagerInterface $entity_type_manager,
+                              AccountProxy $current_user,
+                              SocialPostDataHandler $data_handler) {
     $this->entityTypeManager = $entity_type_manager;
-    $this->entityQuery = $entityQuery;
     $this->currentUser = $current_user;
-    $this->dataHandler = $social_post_data_handler;
-    $this->requestContext = $requestContext;
+    $this->dataHandler = $data_handler;
 
     $this->key = $this->getSalt();
   }
@@ -131,7 +131,7 @@ class SocialPostManager {
    *   if user doesn't exist
    *   Else return Drupal User Id associate with the account.
    */
-  public function getList($plugin_id, $user_id) {
+  public function getAccountsByUserId($plugin_id, $user_id) {
     $storage = $this->entityTypeManager->getStorage('social_post');
     // Perform query on social auth entity.
     $accounts = $storage->loadByProperties([
@@ -154,32 +154,30 @@ class SocialPostManager {
   /**
    * Add user record in Social Post Entity.
    *
-   * @param string $provider_user_id
+   * @param string $name
+   *   The user name in the provider.
+   * @param int|string $provider_user_id
    *   Unique Social ID returned by social network.
    * @param string $token
    *   Token to be used for autoposting.
-   * @param string $name
-   *   Name of user provided by social provider.
    * @param string $additional_data
    *   Additional data to be stored in record.
    *
    * @return bool
    *   True if User record was created or False otherwise
    */
-  public function addRecord($provider_user_id, $token, $name = '', $additional_data = '') {
+  public function addRecord($name, $provider_user_id, $token, $additional_data = NULL) {
     // Get User ID of logged in user.
     $user_id = $this->currentUser->id();
     if ($this->checkIfUserExists($provider_user_id)) {
       return FALSE;
     }
-    // Encode token into json format.
-    $json_token = json_encode($token);
     // Add user record.
     $values = [
       'user_id' => $user_id,
       'plugin_id' => $this->pluginId,
       'provider_user_id' => $provider_user_id,
-      'token' => $this->encryptToken($json_token),
+      'token' => $this->encryptToken($token),
       'name' => $name,
       'additional_data' => $additional_data,
     ];
@@ -192,10 +190,29 @@ class SocialPostManager {
     if ($user_info) {
       return TRUE;
     }
-    else {
-      return FALSE;
-    }
 
+    return FALSE;
+  }
+
+  /**
+   * Sets the session keys to nullify if user could not logged in.
+   *
+   * @param array $session_keys
+   *   The session keys to nullify.
+   */
+  public function setSessionKeysToNullify(array $session_keys) {
+    $this->sessionKeys = $session_keys;
+  }
+
+  /**
+   * Nullifies session keys if user could not logged in.
+   */
+  public function nullifySessionKeys() {
+    if (!empty($this->sessionKeys)) {
+      array_walk($this->sessionKeys, function ($session_key) {
+        $this->dataHandler->set($this->dataHandler->getSessionPrefix() . $session_key, NULL);
+      });
+    }
   }
 
   /**
@@ -239,22 +256,25 @@ class SocialPostManager {
    *   Unique Social ID returned by social network.
    *
    * @return string
-   *   Token in array format.
+   *   The token.
    */
   public function getToken($provider_user_id) {
 
     // Check user for social post implementer.
-    $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->pluginId, 'provider_user_id' => $provider_user_id]));
+    $user_data = current(
+      $this->entityTypeManager->getStorage('social_post')
+        ->loadByProperties([
+          'plugin_id' => $this->pluginId,
+          'provider_user_id' => $provider_user_id,
+        ])
+    );
 
     if (!$user_data) {
       return FALSE;
     }
     else {
       // Get token and decrypt it.
-      $decrypted_token = $this->decryptToken($user_data->get('token')->getValue()[0]['value']);
-
-      // Convert token format from json to array.
-      return json_decode($decrypted_token);
+      return $this->decryptToken($user_data->get('token')->getValue()[0]['value']);
     }
 
   }
@@ -314,8 +334,8 @@ class SocialPostManager {
    *   Hash salt.
    */
   public function getSalt() {
-    // $hash_salt = self::$instance->get('hash_salt');.
-    $hash_salt = 3243;
+    $hash_salt = Settings::getHashSalt();
+
     if (empty($hash_salt)) {
       return FALSE;
     }
