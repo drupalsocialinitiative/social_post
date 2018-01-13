@@ -3,5 +3,6 @@ type: module
 description: Allows posting content to different social networks automatically
 core: 8.x
 package: Social
+configure: social_post.integrations
 dependencies:
   - drupal:social_api (>= 8.x-2.x)
