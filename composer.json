@@ -1,7 +1,7 @@
 {
-    "name": "drupal/social_auth",
+    "name": "drupal/social_post",
     "type": "drupal-module",
-    "description": "Social Auth ",
+    "description": "Social Post",
     "keywords": ["Drupal"],
     "license": "GPL-2.0+",
     "homepage": "https://www.drupal.org/project/social_post",
