@@ -14,7 +14,7 @@ entity.social_post.delete_form:
     provider: 'provider'
     user: FALSE # A drupal user id will be passed instead if the form is invoked from user edit form
   requirements:
-    _permission: 'delete own social post user account'
+    _permission: 'delete own social post user accounts'
 
 entity.social_post.collection:
   path: '/admin/config/social-api/social-post/{provider}/users'
