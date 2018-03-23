@@ -3,6 +3,7 @@ social_post.integrations:
   defaults:
     _controller: '\Drupal\social_post\Controller\SocialPostController::integrations'
     _title: 'Autoposting settings'
+    type: 'social_post'
   requirements:
     _permission: 'administer social api autoposting'
 

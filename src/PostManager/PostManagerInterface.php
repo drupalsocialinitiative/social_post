@@ -9,8 +9,4 @@ use Drupal\social_api\AuthManager\OAuth2ManagerInterface;
  *
  * @package Drupal\social_post\PostManager
  */
-interface PostManagerInterface extends OAuth2ManagerInterface {
-
-  // Do nothing.
-}
-
+interface PostManagerInterface extends OAuth2ManagerInterface {}
