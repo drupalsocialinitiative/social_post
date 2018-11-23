@@ -5,6 +5,7 @@ namespace Drupal\social_post\Form;
 use Drupal\Core\Entity\ContentEntityDeleteForm;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -27,12 +28,20 @@ class SocialPostEntityDeleteForm extends ContentEntityDeleteForm {
   protected $provider;
 
   /**
+   * The Messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('entity.manager'),
-      $container->get('current_route_match')
+      $container->get('current_route_match'),
+      $container->get('messenger')
     );
   }
 
@@ -43,11 +52,16 @@ class SocialPostEntityDeleteForm extends ContentEntityDeleteForm {
    *   The entity manager.
    * @param \Drupal\Core\Routing\CurrentRouteMatch $route_match
    *   The current route match.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
    */
-  public function __construct(EntityManagerInterface $entity_manager, CurrentRouteMatch $route_match) {
+  public function __construct(EntityManagerInterface $entity_manager,
+                              CurrentRouteMatch $route_match,
+                              MessengerInterface $messenger) {
     parent::__construct($entity_manager);
 
     $this->routeMatch = $route_match;
+    $this->messenger = $messenger;
 
     $this->uid = $this->routeMatch->getParameter('user');
     $this->provider = $this->routeMatch->getParameter('provider');
@@ -63,7 +77,7 @@ class SocialPostEntityDeleteForm extends ContentEntityDeleteForm {
     $entity->delete();
     $form_state->setRedirectUrl($this->getRedirectUrl());
 
-    drupal_set_message($this->getDeletionMessage());
+    $this->messenger->addMessage($this->getDeletionMessage());
     $this->logDeletionMessage();
   }
 
