@@ -32,8 +32,8 @@ use Drupal\Core\Entity\EntityChangedTrait;
  *     "uuid" = "uuid",
  *   },
  *   links = {
- *     "delete-form" = "/admin/config/social-api/social-post/users/{social_post}/delete/{provider}/{user}",
- *     "collection" = "/admin/config/social-api/social-post/users/{provider}"
+ *     "delete-form" = "/admin/config/social-api/social-post/users/social_post/{provider}/{social_post}/delete/{user}",
+ *     "collection" = "/admin/config/social-api/social-post/{provider}/users/"
  *   }
  * )
  */

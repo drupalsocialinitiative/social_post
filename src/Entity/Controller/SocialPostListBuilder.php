@@ -6,7 +6,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -19,18 +18,18 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class SocialPostListBuilder extends EntityListBuilder {
 
   /**
+   * The provider.
+   *
+   * @var string
+   */
+  protected $provider;
+
+  /**
    * The url generator.
    *
    * @var \Drupal\Core\Routing\UrlGeneratorInterface
    */
   protected $urlGenerator;
-
-  /**
-   * The current route match.
-   *
-   * @var \Drupal\Core\Routing\CurrentRouteMatch
-   */
-  protected $routeMatch;
 
   /**
    * The user entity storage.
@@ -47,8 +46,7 @@ class SocialPostListBuilder extends EntityListBuilder {
       $entity_type,
       $container->get('entity_type.manager')->getStorage($entity_type->id()),
       $container->get('entity_type.manager')->getStorage('user'),
-      $container->get('url_generator'),
-      $container->get('current_route_match')
+      $container->get('url_generator')
     );
   }
 
@@ -63,19 +61,25 @@ class SocialPostListBuilder extends EntityListBuilder {
    *   The entity storage for the user entity.
    * @param \Drupal\Core\Routing\UrlGeneratorInterface $url_generator
    *   The url generator.
-   * @param \Drupal\Core\Routing\CurrentRouteMatch $route_match
-   *   The current route match.
    */
   public function __construct(EntityTypeInterface $entity_type,
                               EntityStorageInterface $storage,
                               EntityStorageInterface $user_entity,
-                              UrlGeneratorInterface $url_generator,
-                              CurrentRouteMatch $route_match) {
+                              UrlGeneratorInterface $url_generator) {
 
     parent::__construct($entity_type, $storage);
     $this->urlGenerator = $url_generator;
     $this->userEntity = $user_entity;
-    $this->routeMatch = $route_match;
+  }
+
+  /**
+   * Sets the provider for the users that should be listed.
+   *
+   * @param string $provider
+   *   The provider id.
+   */
+  public function setProvider($provider) {
+    $this->provider = $provider;
   }
 
   /**
@@ -92,41 +96,47 @@ class SocialPostListBuilder extends EntityListBuilder {
    * {@inheritdoc}
    */
   public function buildRow(EntityInterface $entity) {
-    /* @var \Drupal\social_post\Entity\SocialPost $entity */
-    $provider = $this->routeMatch->getParameter('provider');
-    $socialNetworkName = $entity->getPluginId();
-    if ($socialNetworkName == 'social_post_' . $provider) {
+    $provider = $entity->getPluginId();
+
+    if ($provider == 'social_post_' . $this->provider) {
       $row['provider_user_id'] = $entity->getProviderUserId();
       $row['social_post_name'] = $entity->getName();
 
       $user = $this->userEntity->load($entity->getUserId());
       $row['user'] = $user->toLink();
+
       return $row + parent::buildRow($entity);
     }
-    return parent::buildRow($entity);
+
+    return [];
+
   }
 
   /**
    * {@inheritdoc}
    */
   public function getDefaultOperations(EntityInterface $entity) {
-    /* @var \Drupal\social_post\Entity\SocialPost $entity */
-    $provider = $this->routeMatch->getParameter('provider');
-    $operations = parent::getDefaultOperations($entity);
 
-    $operations['delete'] = [
-      'title' => t('Delete'),
-      'url' => Url::fromRoute(
-        'entity.social_post.delete_form',
-        [
-          'provider' => $provider,
-          'social_post' => $entity->getId(),
-          'user' => FALSE,
-        ]
-      ),
-    ];
+    $provider = $entity->getPluginId();
 
-    return $operations;
+    if ($provider == 'social_post_' . $this->provider) {
+      $operations = parent::getDefaultOperations($entity);
+      $operations['delete'] = [
+        'title' => t('Delete'),
+        'url' => Url::fromRoute(
+          'entity.social_post.delete_form',
+          [
+            'provider' => $this->provider,
+            'social_post' => $entity->getId(),
+            'user' => FALSE,
+          ]
+        ),
+      ];
+
+      return $operations;
+    }
+
+    return [];
   }
 
 }

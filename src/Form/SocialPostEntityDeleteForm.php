@@ -85,26 +85,26 @@ class SocialPostEntityDeleteForm extends ContentEntityDeleteForm {
    * {@inheritdoc}
    */
   protected function getRedirectUrl() {
-    // If a user id is passed as a parameter,
-    // the form is being invoked from a user edit form.
+    // If a user id is passed as a parameter, the form is being invoked from a
+    // user edit form.
     if ($this->uid) {
       return Url::fromRoute('entity.user.edit_form', ['user' => $this->uid]);
     }
 
-    return Url::fromRoute('entity.social_post.collection', ['provider' => $this->provider]);
+    return Url::fromRoute('social_post_' . $this->provider . '.user.collection');
   }
 
   /**
    * {@inheritdoc}
    */
   public function getCancelUrl() {
-    // If a user id is passed as a parameter,
-    // the form is being invoked from a user edit form.
+    // If a user id is passed as a parameter, the form is being invoked from a
+    // user edit form.
     if ($this->uid) {
       return Url::fromRoute('entity.user.edit_form', ['user' => $this->uid]);
     }
 
-    return Url::fromRoute('entity.social_post.collection', ['provider' => $this->provider]);
+    return Url::fromRoute('social_post_' . $this->provider . '.user.collection');
   }
 
 }
