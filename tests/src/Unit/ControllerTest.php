@@ -1,7 +1,8 @@
 <?php
 
-use Drupal\social_post\Plugin\Network\SocialPostNetworkInterface;
-use Drupal\social_api\Plugin\NetworkInterface;
+use Drupal\social_post\Controller\ControllerBase;
+use Drupal\Core\Controller\ControllerBase as DrupalControllerBase;
+use Drupal\social_post\Entity\Controller\SocialPostListBuilder;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -9,7 +10,7 @@ use Drupal\Tests\UnitTestCase;
  *
  * @Annotation
  */
-class NetworkTest extends UnitTestCase {
+class ControllerTest extends UnitTestCase {
 
   /**
    * Define __construct function.
@@ -28,13 +29,18 @@ class NetworkTest extends UnitTestCase {
   /**
    * Tests for class Network.
    */
-  public function testSocialPostNetworkInterface() {
-    $socialPostNetworkInterface = $this->getMockBuilder(SocialPostNetworkInterface::class)
-                                       ->getMock();
+  public function testControllerBase() {
+    $controllerBase = $this->getMockBuilder(ControllerBase::class)
+                           ->getMock();
+    $listBuilder = $this->createMock(SocialPostListBuilder::class);
+    $controllerBase->method('buildList')
+                   ->with('facebook')
+                   ->willReturn($listBuilder->render());
     $this->assertTrue(
-          method_exists($socialPostNetworkInterface, 'post'),
-            'SocialPostNetworkInterface does not implements post function/method'
+          method_exists($controllerBase, 'buildList'),
+            'ControllerBase does not implements buildList function/method'
     );
+    $this->assertEquals($listBuilder->render(), $controllerBase->buildList('facebook'));
   }
 
 }
