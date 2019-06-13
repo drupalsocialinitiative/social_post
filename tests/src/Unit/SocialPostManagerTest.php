@@ -14,7 +14,6 @@ use Drupal\Tests\UnitTestCase;
  */
 class SocialPostManagerTest extends UnitTestCase {
 
-  protected $plugin_id = 'drupal';
   /**
    * Define __construct function.
    */
@@ -27,21 +26,48 @@ class SocialPostManagerTest extends UnitTestCase {
    */
   public function setUp() {
     parent::setUp();
+    $provider_user_id = 'drupaluser';
   }
 
   /**
    * Tests for class UserAccessControlHandler.
    */
   public function testSocialPostManager() {
+    $plugin_id = 'drupal';
+    $user_id = 'drupaluser';
     $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
     $current_user = $this->createMock(AccountProxy::class);
     $data_handler = $this->createMock(SocialPostDataHandler::class);
     $socialPostManager = $this->getMockBuilder(SocialPostManager::class)
-                                     ->setConstructorArgs(array($entity_type_manager,
-                                                                $current_user,
-                                                                $data_handler,
-                                                          ))
-                                     ->getMock();
+                              ->setConstructorArgs(array($entity_type_manager,
+                                                         $current_user,
+                                                         $data_handler,
+                                                   ))
+                              ->getMock();
+
+    $socialPostManager->setPluginId('drupal123');
+    $socialPostManager->method('getPluginId')
+                      ->willReturn('drupal123');
+
+    $socialPostManager->method('getCurrentUser')
+                      ->willReturn(123);
+
+    $socialPostManager->method('getAccountsByUserId')
+                      ->with($plugin_id, $user_id)
+                      ->will($this->returnValue(array(
+                        'user_id' => $user_id,
+                        'plugin_id' => $plugin_id,
+                      )));
+
+    $socialPostManager->method('addRecord')
+                      ->with('drupaluser','drupal123', 'drupal', $additional_data = NULL)
+                      ->will($this->returnValue(TRUE));
+
+    $socialPostManager->setSessionKeysToNullify(array('drupal'));
+
+    $socialPostManager->method('getSalt')
+                      ->willReturn('drupal3ab9');
+
     $this->assertTrue(
           method_exists($socialPostManager, 'setPluginId'),
             'SocialPostManager does not implements setPluginId function/method'
@@ -94,6 +120,11 @@ class SocialPostManagerTest extends UnitTestCase {
           method_exists($socialPostManager, 'getSalt'),
             'SocialPostManager does not implements getSalt function/method'
     );
+    $this->assertEquals('drupal123', $socialPostManager->getPluginId());
+    $this->assertEquals(123, $socialPostManager->getCurrentUser());
+    $this->assertEquals(['user_id' => 'drupaluser', 'plugin_id' => 'drupal'],
+                       $socialPostManager->getAccountsByUserId($plugin_id, $user_id));
+    $this->assertEquals('drupal3ab9', $socialPostManager->getSalt());
+    $this->assertTrue($socialPostManager->addRecord('drupaluser','drupal123', 'drupal', $additional_data = NULL));
   }
-
 }
