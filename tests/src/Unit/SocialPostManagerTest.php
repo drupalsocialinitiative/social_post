@@ -127,4 +127,34 @@ class SocialPostManagerTest extends UnitTestCase {
     $this->assertEquals('drupal3ab9', $socialPostManager->getSalt());
     $this->assertTrue($socialPostManager->addRecord('drupaluser','drupal123', 'drupal', $additional_data = NULL));
   }
+
+  // public function testencryptToken($token = "drupal") {
+  //   $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
+  //   $current_user = $this->createMock(AccountProxy::class);
+  //   $data_handler = $this->createMock(SocialPostDataHandler::class);
+  //   $socialPostManager = $this->getMockBuilder(SocialPostManager::class)
+  //                             ->setConstructorArgs(array($entity_type_manager,
+  //                                                        $current_user,
+  //                                                        $data_handler,
+  //                                                  ))
+  //                             ->getMock();
+  //
+  //   $socialPostManager->method('getSalt')
+  //                     ->willReturn('drupal3ab9');
+  //   $key = $socialPostManager->getSalt();
+  //
+  //   // Remove the base64 encoding from our key.
+  //   $encryption_key = base64_decode($key);
+  //
+  //   // Generate an initialization vector.
+  //   $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
+  //
+  //   // Encrypt the data using AES 256 encryption in CBC mode
+  //   // using our encryption key and initialization vector.
+  //   $encrypted = openssl_encrypt($token, 'aes-256-cbc', $encryption_key, 0, $iv);
+  //
+  //   // The $iv is just as important as the key for decrypting,
+  //   // so save it with our encrypted data using a unique separator (::).
+  //   var_dump(base64_encode($encrypted . '::' . $iv));
+  // }
 }
