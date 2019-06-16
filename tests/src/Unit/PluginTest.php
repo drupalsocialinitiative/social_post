@@ -1,7 +1,6 @@
 <?php
 
 use Drupal\social_post\Plugin\Network\SocialPostNetworkInterface;
-use Drupal\social_api\Plugin\NetworkInterface;
 use Drupal\Tests\UnitTestCase;
 
 /**
@@ -17,7 +16,7 @@ class NetworkTest extends UnitTestCase {
   public function testSocialPostNetworkInterface() {
 
     $socialPostNetworkInterface = $this->getMockBuilder(SocialPostNetworkInterface::class)
-                                       ->getMock();
+      ->getMock();
     $this->assertTrue(
           method_exists($socialPostNetworkInterface, 'post'),
             'SocialPostNetworkInterface does not implements post function/method'
