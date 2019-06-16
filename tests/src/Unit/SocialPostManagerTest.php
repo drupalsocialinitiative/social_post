@@ -46,6 +46,7 @@ class SocialPostManagerTest extends UnitTestCase {
                               ->getMock();
 
     $socialPostManager->setPluginId('drupal123');
+
     $socialPostManager->method('getPluginId')
                       ->willReturn('drupal123');
 
@@ -55,8 +56,8 @@ class SocialPostManagerTest extends UnitTestCase {
     $socialPostManager->method('getAccountsByUserId')
                       ->with($plugin_id, $user_id)
                       ->will($this->returnValue(array(
-                        'user_id' => $user_id,
-                        'plugin_id' => $plugin_id,
+                        'user_id' => 'drupaluser',
+                        'plugin_id' => 'drupal',
                       )));
 
     $socialPostManager->method('addRecord')
@@ -72,14 +73,17 @@ class SocialPostManagerTest extends UnitTestCase {
           method_exists($socialPostManager, 'setPluginId'),
             'SocialPostManager does not implements setPluginId function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'getPluginId'),
             'SocialPostManager does not implements getPluginId function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'getAccountsByUserId'),
             'SocialPostManager does not implements getAccountsByUserId function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'checkIfUserExists'),
             'SocialPostManager does not implements checkIfUserExists function/method'
@@ -88,18 +92,22 @@ class SocialPostManagerTest extends UnitTestCase {
           method_exists($socialPostManager, 'getCurrentUser'),
             'SocialPostManager does not implements getCurrentUser function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'addRecord'),
             'SocialPostManager does not implements addRecord function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'setSessionKeysToNullify'),
             'SocialPostManager does not implements setSessionKeysToNullify function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'nullifySessionKeys'),
             'SocialPostManager does not implements cnullifySessionKeys function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'updateToken'),
             'SocialPostManager does not implements updateToken function/method'
@@ -108,6 +116,7 @@ class SocialPostManagerTest extends UnitTestCase {
           method_exists($socialPostManager, 'getToken'),
             'SocialPostManager does not implements getToken function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'encryptToken'),
             'SocialPostManager does not implements encryptToken function/method'
@@ -116,10 +125,12 @@ class SocialPostManagerTest extends UnitTestCase {
           method_exists($socialPostManager, 'decryptToken'),
             'SocialPostManager does not implements decryptToken function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostManager, 'getSalt'),
             'SocialPostManager does not implements getSalt function/method'
     );
+
     $this->assertEquals('drupal123', $socialPostManager->getPluginId());
     $this->assertEquals(123, $socialPostManager->getCurrentUser());
     $this->assertEquals(['user_id' => 'drupaluser', 'plugin_id' => 'drupal'],
