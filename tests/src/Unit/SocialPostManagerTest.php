@@ -3,7 +3,6 @@
 use Drupal\social_post\SocialPostManager;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountProxy;
-use Drupal\Core\Site\Settings;
 use Drupal\social_post\SocialPostDataHandler;
 use Drupal\Tests\UnitTestCase;
 
@@ -15,21 +14,6 @@ use Drupal\Tests\UnitTestCase;
 class SocialPostManagerTest extends UnitTestCase {
 
   /**
-   * Define __construct function.
-   */
-  public function __construct() {
-    parent::__construct();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setUp() {
-    parent::setUp();
-    $provider_user_id = 'drupaluser';
-  }
-
-  /**
    * Tests for class UserAccessControlHandler.
    */
   public function testSocialPostManager() {
@@ -39,35 +23,35 @@ class SocialPostManagerTest extends UnitTestCase {
     $current_user = $this->createMock(AccountProxy::class);
     $data_handler = $this->createMock(SocialPostDataHandler::class);
     $socialPostManager = $this->getMockBuilder(SocialPostManager::class)
-                              ->setConstructorArgs(array($entity_type_manager,
-                                                         $current_user,
-                                                         $data_handler,
-                                                   ))
-                              ->getMock();
+      ->setConstructorArgs([$entity_type_manager,
+        $current_user,
+        $data_handler,
+      ])
+      ->getMock();
 
     $socialPostManager->setPluginId('drupal123');
 
     $socialPostManager->method('getPluginId')
-                      ->willReturn('drupal123');
+      ->willReturn('drupal123');
 
     $socialPostManager->method('getCurrentUser')
-                      ->willReturn(123);
+      ->willReturn(123);
 
     $socialPostManager->method('getAccountsByUserId')
-                      ->with($plugin_id, $user_id)
-                      ->will($this->returnValue(array(
-                        'user_id' => 'drupaluser',
-                        'plugin_id' => 'drupal',
-                      )));
+      ->with($plugin_id, $user_id)
+      ->will($this->returnValue([
+        'user_id' => 'drupaluser',
+        'plugin_id' => 'drupal',
+      ]));
 
     $socialPostManager->method('addRecord')
-                      ->with('drupaluser','drupal123', 'drupal', $additional_data = NULL)
-                      ->will($this->returnValue(TRUE));
+      ->with('drupaluser', 'drupal123', 'drupal', $additional_data = NULL)
+      ->will($this->returnValue(TRUE));
 
-    $socialPostManager->setSessionKeysToNullify(array('drupal'));
+    $socialPostManager->setSessionKeysToNullify(['drupal']);
 
     $socialPostManager->method('getSalt')
-                      ->willReturn('drupal3ab9');
+      ->willReturn('drupal3ab9');
 
     $this->assertTrue(
           method_exists($socialPostManager, 'setPluginId'),
@@ -133,39 +117,13 @@ class SocialPostManagerTest extends UnitTestCase {
 
     $this->assertEquals('drupal123', $socialPostManager->getPluginId());
     $this->assertEquals(123, $socialPostManager->getCurrentUser());
-    $this->assertEquals(['user_id' => 'drupaluser', 'plugin_id' => 'drupal'],
-                       $socialPostManager->getAccountsByUserId($plugin_id, $user_id));
+    $this->assertEquals([
+      'user_id' => 'drupaluser',
+      'plugin_id' => 'drupal',
+    ],
+    $socialPostManager->getAccountsByUserId($plugin_id, $user_id));
     $this->assertEquals('drupal3ab9', $socialPostManager->getSalt());
-    $this->assertTrue($socialPostManager->addRecord('drupaluser','drupal123', 'drupal', $additional_data = NULL));
+    $this->assertTrue($socialPostManager->addRecord('drupaluser', 'drupal123', 'drupal', $additional_data = NULL));
   }
 
-  // public function testencryptToken($token = "drupal") {
-  //   $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
-  //   $current_user = $this->createMock(AccountProxy::class);
-  //   $data_handler = $this->createMock(SocialPostDataHandler::class);
-  //   $socialPostManager = $this->getMockBuilder(SocialPostManager::class)
-  //                             ->setConstructorArgs(array($entity_type_manager,
-  //                                                        $current_user,
-  //                                                        $data_handler,
-  //                                                  ))
-  //                             ->getMock();
-  //
-  //   $socialPostManager->method('getSalt')
-  //                     ->willReturn('drupal3ab9');
-  //   $key = $socialPostManager->getSalt();
-  //
-  //   // Remove the base64 encoding from our key.
-  //   $encryption_key = base64_decode($key);
-  //
-  //   // Generate an initialization vector.
-  //   $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
-  //
-  //   // Encrypt the data using AES 256 encryption in CBC mode
-  //   // using our encryption key and initialization vector.
-  //   $encrypted = openssl_encrypt($token, 'aes-256-cbc', $encryption_key, 0, $iv);
-  //
-  //   // The $iv is just as important as the key for decrypting,
-  //   // so save it with our encrypted data using a unique separator (::).
-  //   var_dump(base64_encode($encrypted . '::' . $iv));
-  // }
 }
