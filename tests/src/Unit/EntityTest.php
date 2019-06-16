@@ -23,23 +23,10 @@ use Drupal\Tests\UnitTestCase;
 class EntityTest extends UnitTestCase {
 
   /**
-   * Define __construct function.
-   */
-  public function __construct() {
-    parent::__construct();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setUp() {
-    parent::setUp();
-  }
-
-  /**
    * Tests for class SocialPost.
    */
   public function testSocialPost() {
+
     $socialPost = $this->getMockBuilder(SocialPost::class)
                        ->disableOriginalConstructor()
                        ->getMock();
@@ -103,6 +90,7 @@ class EntityTest extends UnitTestCase {
     $entity = $this->createMock(EntityInterface::class);
     $container = $this->createMock(ContainerInterface::class);
     $entity_type = $this->createMock(EntityTypeInterface::class);
+
     $socialPostListBuilder = $this->getMockBuilder(SocialPostListBuilder::class)
                                   ->setConstructorArgs(array($entity_type,
                                                              $storage,
@@ -110,35 +98,33 @@ class EntityTest extends UnitTestCase {
                                                              $url_generator,
                                                        ))
                                   ->getMock();
-    // print_r(get_class_methods($socialPostListBuilder));
+
     $socialPostListBuilder->setProvider('providerName');
-    $this->assertTrue(true);
-    // $header = array(
-    //     'social_id'   => 'socialId',
-    //     'social_post_name' => 'socialPostName',
-    //     'user' => 123,
-    // );
+
     $this->assertTrue(
           method_exists($socialPostListBuilder, 'createInstance'),
             'SocialPostListBuilder does not implements createInstance function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostListBuilder, 'setProvider'),
             'SocialPostListBuilder does not implements setProvider function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostListBuilder, 'buildHeader'),
             'SocialPostListBuilder does not implements buildHeader function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostListBuilder, 'buildRow'),
             'SocialPostListBuilder does not implements buildRow function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPostListBuilder, 'getDefaultOperations'),
             'SocialPostListBuilder does not implements getDefaultOperations function/method'
     );
-    // entityinterface is called from core, maybe we need to call this: /social_post/sr/Entity/SocialPost
   }
 
 }
