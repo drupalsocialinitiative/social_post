@@ -32,13 +32,6 @@ class SocialPostManagerTest extends UnitTestCase {
 
     $socialPostManager->setPluginId('drupal123');
 
-    $socialPostManager->method('getAccountsByUserId')
-      ->with($plugin_id, $user_id)
-      ->will($this->returnValue([
-        'user_id' => 'drupaluser',
-        'plugin_id' => 'drupal',
-      ]));
-
     $socialPostManager->setSessionKeysToNullify(['drupal']);
 
     $socialPostManager->method('getSalt')
@@ -107,12 +100,6 @@ class SocialPostManagerTest extends UnitTestCase {
     );
 
     $this->assertEquals('drupal123', $socialPostManager->getPluginId());
-
-    $this->assertEquals([
-      'user_id' => 'drupaluser',
-      'plugin_id' => 'drupal',
-    ],
-    $socialPostManager->getAccountsByUserId($plugin_id, $user_id));
 
     $this->assertEquals('drupal3ab9', $socialPostManager->getSalt());
   }
