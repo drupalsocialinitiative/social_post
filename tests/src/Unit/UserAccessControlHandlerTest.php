@@ -31,11 +31,6 @@ class UserAccessControlHandlerTest extends UnitTestCase {
                                      ->setConstructorArgs(array($entity_type))
                                      ->getMock();
 
-    // $userAccessControlHandler->checkAccess($entity, 'view', $account);
-    // $reflection = new ReflectionClass(UserAccessControlHandler::class);
-    // $method = $reflection->getMethod('checkAccess');
-    // $method->setAccessible(true);
-    // return $method;
     $this->assertTrue(
           method_exists($userAccessControlHandler, 'checkAccess'),
             'ControllerBase does not implements checkAccess function/method'

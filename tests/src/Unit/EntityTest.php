@@ -49,18 +49,22 @@ class EntityTest extends UnitTestCase {
           method_exists($socialPost, 'getProviderUserId'),
             'SocialPost does not implements getProviderUserId function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPost, 'getPluginId'),
             'SocialPost does not implements getPluginId function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPost, 'getName'),
             'SocialPost does not implements getName function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPost, 'getId'),
             'SocialPost does not implements getId function/method'
     );
+
     $this->assertTrue(
           method_exists($socialPost, 'getUserId'),
             'SocialPost does not implements getUserId function/method'
@@ -91,9 +95,11 @@ class EntityTest extends UnitTestCase {
         $user_entity,
         $url_generator,
       ])
+      ->setMethods(null)
       ->getMock();
 
     $socialPostListBuilder->setProvider('providerName');
+    // var_dump($socialPostListBuilder->getDefaultOperations($entity));
 
     $this->assertTrue(
           method_exists($socialPostListBuilder, 'createInstance'),

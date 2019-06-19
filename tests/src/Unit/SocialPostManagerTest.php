@@ -27,15 +27,10 @@ class SocialPostManagerTest extends UnitTestCase {
         $current_user,
         $data_handler,
       ])
+      ->setMethods(['getSalt', 'getAccountsByUserId'])
       ->getMock();
 
     $socialPostManager->setPluginId('drupal123');
-
-    $socialPostManager->method('getPluginId')
-      ->willReturn('drupal123');
-
-    $socialPostManager->method('getCurrentUser')
-      ->willReturn(123);
 
     $socialPostManager->method('getAccountsByUserId')
       ->with($plugin_id, $user_id)
@@ -43,10 +38,6 @@ class SocialPostManagerTest extends UnitTestCase {
         'user_id' => 'drupaluser',
         'plugin_id' => 'drupal',
       ]));
-
-    $socialPostManager->method('addRecord')
-      ->with('drupaluser', 'drupal123', 'drupal', $additional_data = NULL)
-      ->will($this->returnValue(TRUE));
 
     $socialPostManager->setSessionKeysToNullify(['drupal']);
 
@@ -116,14 +107,14 @@ class SocialPostManagerTest extends UnitTestCase {
     );
 
     $this->assertEquals('drupal123', $socialPostManager->getPluginId());
-    $this->assertEquals(123, $socialPostManager->getCurrentUser());
+
     $this->assertEquals([
       'user_id' => 'drupaluser',
       'plugin_id' => 'drupal',
     ],
     $socialPostManager->getAccountsByUserId($plugin_id, $user_id));
+
     $this->assertEquals('drupal3ab9', $socialPostManager->getSalt());
-    $this->assertTrue($socialPostManager->addRecord('drupaluser', 'drupal123', 'drupal', $additional_data = NULL));
   }
 
 }

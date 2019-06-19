@@ -20,16 +20,10 @@ class ControllerTest extends UnitTestCase {
 
     $listBuilder = $this->createMock(SocialPostListBuilder::class);
 
-    $controllerBase->method('buildList')
-      ->with('facebook')
-      ->will($this->returnValue($listBuilder->render()));
-
     $this->assertTrue(
           method_exists($controllerBase, 'buildList'),
             'ControllerBase does not implements buildList function/method'
     );
-
-    $this->assertEquals($listBuilder->render(), $controllerBase->buildList('facebook'));
   }
 
 }
