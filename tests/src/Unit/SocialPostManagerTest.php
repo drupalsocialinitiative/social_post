@@ -27,7 +27,7 @@ class SocialPostManagerTest extends UnitTestCase {
         $current_user,
         $data_handler,
       ])
-      ->setMethods(['getSalt', 'getAccountsByUserId'])
+      ->setMethods(['getSalt'])
       ->getMock();
 
     $socialPostManager->setPluginId('drupal123');
