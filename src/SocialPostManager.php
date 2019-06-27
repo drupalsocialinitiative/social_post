@@ -183,6 +183,7 @@ class SocialPostManager {
     ];
 
     $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
+    $user_info->setToken($token);
 
     // Save the entity.
     $user_info->save();
@@ -269,14 +270,7 @@ class SocialPostManager {
         ])
     );
 
-    if (!$user_data) {
-      return FALSE;
-    }
-    else {
-      // Get token and decrypt it.
-      return $this->decryptToken($user_data->get('token')->getValue()[0]['value']);
-    }
-
+    return $this->decryptToken($user_data->get('token')->getValue()[0]['value']);
   }
 
   /**
