@@ -177,7 +177,7 @@ class SocialPostManager {
       'user_id' => $user_id,
       'plugin_id' => $this->pluginId,
       'provider_user_id' => $provider_user_id,
-      'token' => $this->encryptToken($token),
+      'token' => $token,
       'name' => $name,
       'additional_data' => $additional_data,
     ];
