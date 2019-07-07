@@ -2,11 +2,11 @@
 
 namespace Drupal\social_post\Entity;
 
-use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityChangedTrait;
+use Drupal\social_api\Entity\SocialApi;
 
 /**
  * Defines the Social Post entity.
@@ -37,7 +37,7 @@ use Drupal\Core\Entity\EntityChangedTrait;
  *   }
  * )
  */
-class SocialPost extends ContentEntityBase implements ContentEntityInterface {
+class SocialPost extends SocialApi implements ContentEntityInterface {
   use EntityChangedTrait;
 
   /**
@@ -141,6 +141,7 @@ class SocialPost extends ContentEntityBase implements ContentEntityInterface {
       ->setLabel(t('Additional Data'))
       ->setDescription(t('Additional_dara'))
       ->setReadOnly(TRUE);
+
     return $fields;
   }
 

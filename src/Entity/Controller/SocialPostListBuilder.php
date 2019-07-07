@@ -122,7 +122,7 @@ class SocialPostListBuilder extends EntityListBuilder {
     if ($provider == 'social_post_' . $this->provider) {
       $operations = parent::getDefaultOperations($entity);
       $operations['delete'] = [
-        'title' => t('Delete'),
+        'title' => $this->t('Delete'),
         'url' => Url::fromRoute(
           'entity.social_post.delete_form',
           [

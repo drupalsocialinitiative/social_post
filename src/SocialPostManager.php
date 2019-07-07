@@ -2,14 +2,18 @@
 
 namespace Drupal\social_post;
 
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxy;
-use Drupal\Core\Site\Settings;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Contains all logic that is related to Drupal user management.
  */
 class SocialPostManager {
+
+  use StringTranslationTrait;
 
   /**
    * The Entity Type Manager.
@@ -33,6 +37,13 @@ class SocialPostManager {
   protected $dataHandler;
 
   /**
+   * The Drupal logger factory.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   */
+  protected $loggerFactory;
+
+  /**
    * The implementer plugin id.
    *
    * @var string
@@ -47,13 +58,6 @@ class SocialPostManager {
   protected $sessionKeys;
 
   /**
-   * The unique salt generated for drupal installation.
-   *
-   * @var string
-   */
-  protected $key;
-
-  /**
    * Constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -61,16 +65,19 @@ class SocialPostManager {
    * @param \Drupal\Core\Session\AccountProxy $current_user
    *   Used to get current active user.
    * @param \Drupal\social_post\SocialPostDataHandler $data_handler
-   *   Class to interact with session.
+   *   Used to handle session values.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
+   *   Used for logging errors.
    */
   public function __construct(EntityTypeManagerInterface $entity_type_manager,
                               AccountProxy $current_user,
-                              SocialPostDataHandler $data_handler) {
+                              SocialPostDataHandler $data_handler,
+                              LoggerChannelFactoryInterface $logger_factory) {
+
     $this->entityTypeManager = $entity_type_manager;
     $this->currentUser = $current_user;
     $this->dataHandler = $data_handler;
-
-    $this->key = $this->getSalt();
+    $this->loggerFactory = $logger_factory;
   }
 
   /**
@@ -105,18 +112,26 @@ class SocialPostManager {
    * @param string $provider_user_id
    *   User's name on Provider.
    *
-   * @return false
-   *   if user doesn't exist
-   *   Else return Drupal User Id associate with the account.
+   * @return int|bool
+   *   The Drupal user ID associate with the account.
+   *   False if record does not exist.
    */
   public function checkIfUserExists($provider_user_id) {
     // Check user for social post implementer.
-    $user_data = current($this->entityTypeManager->getStorage('social_post')->loadByProperties(['plugin_id' => $this->pluginId, 'provider_user_id' => $provider_user_id]));
+    /** @var \Drupal\social_post\Entity\SocialPost|false $social_post_user */
+    $social_post_user = current(
+      $this->entityTypeManager->getStorage('social_post')
+        ->loadByProperties([
+          'plugin_id' => $this->pluginId,
+          'provider_user_id' => $provider_user_id,
+        ])
+    );
 
-    if (!$user_data) {
+    if ($social_post_user === FALSE) {
       return FALSE;
     }
-    return $user_data->get('user_id')->getValue()[0]["target_id"];
+
+    return $social_post_user->getUserId();
   }
 
   /**
@@ -138,6 +153,7 @@ class SocialPostManager {
       'user_id' => $user_id,
       'plugin_id' => $plugin_id,
     ]);
+
     return $accounts;
   }
 
@@ -145,7 +161,7 @@ class SocialPostManager {
    * Get ID of logged in user.
    *
    * @return int
-   *   User Id.
+   *   The current Drupal user ID.
    */
   public function getCurrentUser() {
     return $this->currentUser->id();
@@ -168,23 +184,25 @@ class SocialPostManager {
    */
   public function addRecord($name, $provider_user_id, $token, $additional_data = NULL) {
     // Get User ID of logged in user.
-    $user_id = $this->currentUser->id();
+    $user_id = $this->getCurrentUser();
+
     if ($this->checkIfUserExists($provider_user_id)) {
       return FALSE;
     }
-    // Add user record.
+
+    // Adds user record.
     $values = [
       'user_id' => $user_id,
       'plugin_id' => $this->pluginId,
       'provider_user_id' => $provider_user_id,
-      'token' => $this->encryptToken($token),
       'name' => $name,
       'additional_data' => $additional_data,
     ];
 
     $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
+    $user_info->setToken($token);
 
-    // Save the entity.
+    // Saves the entity.
     $user_info->save();
 
     if ($user_info) {
@@ -226,42 +244,56 @@ class SocialPostManager {
    *   Token provided by social_network.
    *
    * @return bool
-   *   True if updated else False otherwise.
+   *   True if updated
+   *   False otherwise
    */
   public function updateToken($plugin_id, $provider_user_id, $token) {
-    $field_storage_configs = $this->entityTypeManager
-      ->getStorage('social_post')
-      ->loadByProperties(['plugin_id' => $plugin_id, 'provider_user_id' => $provider_user_id]);
+    /** @var \Drupal\social_post\Entity\SocialPost|false $social_post_user */
+    $social_post_user = current(
+      $this->entityTypeManager
+        ->getStorage('social_post')
+        ->loadByProperties([
+          'plugin_id' => $plugin_id,
+          'provider_user_id' => $provider_user_id,
+        ])
+    );
 
-    $save_token = '';
-
-    foreach ($field_storage_configs as $field_storage) {
-      $field_storage->token = $token;
-      $field_storage->enforceIsNew(FALSE);
-      $save_token = $field_storage->save();
+    if ($social_post_user === FALSE) {
+      return FALSE;
     }
 
-    if ($save_token) {
+    try {
+      $social_post_user->setToken($token)->save();
+
       return TRUE;
     }
-    else {
+    catch (EntityStorageException $e) {
+      $this->loggerFactory
+        ->get($this->getPluginId())
+        ->error(
+          'Failed to save user with updated token. Error @error', [
+            '@error' => $e->getMessage(),
+          ]
+        );
+
       return FALSE;
     }
   }
 
   /**
-   * Used to get token for autoposting by implementers.
+   * Returns the user's token for a provider.
    *
    * @param string $provider_user_id
-   *   Unique Social ID returned by social network.
+   *   Unique user ID in the provider.
    *
-   * @return string
-   *   The token.
+   * @return string|null
+   *   The token or null if user is not found.
    */
   public function getToken($provider_user_id) {
 
-    // Check user for social post implementer.
-    $user_data = current(
+    // Checks user for social post implementer.
+    /** @var \Drupal\social_post\Entity\SocialPost|false $social_post_user */
+    $social_post_user = current(
       $this->entityTypeManager->getStorage('social_post')
         ->loadByProperties([
           'plugin_id' => $this->pluginId,
@@ -269,77 +301,11 @@ class SocialPostManager {
         ])
     );
 
-    if (!$user_data) {
-      return FALSE;
-    }
-    else {
-      // Get token and decrypt it.
-      return $this->decryptToken($user_data->get('token')->getValue()[0]['value']);
+    if ($social_post_user === FALSE) {
+      return NULL;
     }
 
-  }
-
-  /**
-   * Encrypt the token.
-   *
-   * @param string $token
-   *   Tokens provided by social provider.
-   *
-   * @return string
-   *   Encrypted_token to be stored in database.
-   */
-  private function encryptToken($token) {
-    $key = $this->key;
-
-    // Remove the base64 encoding from our key.
-    $encryption_key = base64_decode($key);
-
-    // Generate an initialization vector.
-    $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
-
-    // Encrypt the data using AES 256 encryption in CBC mode
-    // using our encryption key and initialization vector.
-    $encrypted = openssl_encrypt($token, 'aes-256-cbc', $encryption_key, 0, $iv);
-
-    // The $iv is just as important as the key for decrypting,
-    // so save it with our encrypted data using a unique separator (::).
-    return base64_encode($encrypted . '::' . $iv);
-  }
-
-  /**
-   * Decrypt the encrypted token.
-   *
-   * @param string $token
-   *   Encrypted token stored in database.
-   *
-   * @return string
-   *   Token in JSON format.
-   */
-  private function decryptToken($token) {
-    $key = $this->key;
-
-    // Remove the base64 encoding from our key.
-    $encryption_key = base64_decode($key);
-
-    // To decrypt, split the encrypted data from our IV -
-    // our unique separator used was "::".
-    list($encrypted_data, $iv) = explode('::', base64_decode($token), 2);
-    return openssl_decrypt($encrypted_data, 'aes-256-cbc', $encryption_key, 0, $iv);
-  }
-
-  /**
-   * Get salt for this drupal installation.
-   *
-   * @return string
-   *   Hash salt.
-   */
-  public function getSalt() {
-    $hash_salt = Settings::getHashSalt();
-
-    if (empty($hash_salt)) {
-      return FALSE;
-    }
-    return $hash_salt;
+    return $social_post_user->getToken();
   }
 
 }

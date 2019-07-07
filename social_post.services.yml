@@ -5,6 +5,7 @@ services:
       - '@entity_type.manager'
       - '@current_user'
       - '@social_post.data_handler'
+      - '@logger.factory'
 
   social_post.data_handler:
     class: Drupal\social_post\SocialPostDataHandler
