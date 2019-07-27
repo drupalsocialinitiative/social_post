@@ -135,16 +135,15 @@ class SocialPostManager {
   }
 
   /**
-   * Checks if user exist in entity.
+   * Gets the Social Post records associated with a user and a provider.
    *
    * @param string $plugin_id
-   *   Plugin Id.
+   *   The Social API plugin ID.
    * @param string $user_id
-   *   User's name on Provider.
+   *   The Drupal user ID.
    *
-   * @return false
-   *   if user doesn't exist
-   *   Else return Drupal User Id associate with the account.
+   * @return \Drupal\Core\Entity\EntityInterface[]
+   *   An array of Social Post records associated with the user.
    */
   public function getAccountsByUserId($plugin_id, $user_id) {
     $storage = $this->entityTypeManager->getStorage('social_post');
