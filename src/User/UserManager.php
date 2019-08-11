@@ -1,17 +1,18 @@
 <?php
 
-namespace Drupal\social_post;
+namespace Drupal\social_post\User;
 
 use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxy;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\social_post\SocialPostDataHandler;
 
 /**
  * Contains all logic that is related to Drupal user management.
  */
-class SocialPostManager {
+class UserManager {
 
   use StringTranslationTrait;
 
@@ -137,20 +138,18 @@ class SocialPostManager {
   /**
    * Gets the Social Post records associated with a user and a provider.
    *
-   * @param string $plugin_id
-   *   The Social API plugin ID.
    * @param string $user_id
    *   The Drupal user ID.
    *
    * @return \Drupal\Core\Entity\EntityInterface[]
    *   An array of Social Post records associated with the user.
    */
-  public function getAccountsByUserId($plugin_id, $user_id) {
+  public function getAccountsByUserId($user_id) {
     $storage = $this->entityTypeManager->getStorage('social_post');
     // Perform query on social auth entity.
     $accounts = $storage->loadByProperties([
       'user_id' => $user_id,
-      'plugin_id' => $plugin_id,
+      'plugin_id' => $this->pluginId,
     ]);
 
     return $accounts;

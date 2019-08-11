@@ -1,6 +1,6 @@
 services:
-  social_post.post_manager:
-    class: Drupal\social_post\SocialPostManager
+  social_post.user_manager:
+    class: Drupal\social_post\User\UserManager
     arguments:
       - '@entity_type.manager'
       - '@current_user'
