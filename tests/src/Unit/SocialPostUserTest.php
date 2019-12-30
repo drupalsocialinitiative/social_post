@@ -2,9 +2,11 @@
 
 namespace Drupal\Tests\social_post\Unit;
 
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxy;
+use Drupal\social_post\Entity\SocialPost;
 use Drupal\social_post\SocialPostDataHandler;
 use Drupal\social_post\User\UserManager;
 use Drupal\Tests\UnitTestCase;
@@ -31,6 +33,13 @@ class SocialPostUserTest extends UnitTestCase {
   protected $dataHandler;
 
   /**
+   * The mocked Entity Type Manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * The mocked array of the session keys.
    *
    * @var array
@@ -38,11 +47,41 @@ class SocialPostUserTest extends UnitTestCase {
   protected $sessionKeys;
 
   /**
+   * The test plugin id
+   *
+   * @var string
+   */
+  protected $pluginId = 'social_post_test';
+
+  /**
+   * The test provider user id.
+   *
+   * @var string
+   */
+  protected $provider_user_id = 'some_id';
+
+  /**
+   * The mocked Social Post
+   *
+   * @var \Drupal\social_post\Entity\SocialPost
+   */
+  protected $socialPost;
+
+  /**
    * {@inheritdoc}
    */
   public function setUp() {
     $current_user = $this->createMock(AccountProxy::class);
-    $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
+    $this->userStorage = $this->createMock(EntityStorageInterface::class);
+
+    $this->socialPost = $this->createMock(SocialPost::class);
+
+    $this->entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
+    $this->entityTypeManager->expects($this->any())
+      ->method('getStorage')
+      ->with('social_post')
+      ->will($this->returnValue($this->userStorage));
+
     $logger_factory = $this->createMock(LoggerChannelFactoryInterface::class);
 
     $this->dataHandler = $this->getMockBuilder(SocialPostDataHandler::class)
@@ -52,14 +91,7 @@ class SocialPostUserTest extends UnitTestCase {
 
     $this->sessionKeys = [];
 
-    $this->userManager = $this->getMockBuilder(UserManager::class)
-      ->setConstructorArgs([$entity_type_manager,
-        $current_user,
-        $this->dataHandler,
-        $logger_factory,
-      ])
-      ->setMethods(NULL)
-      ->getMock();
+    $this->userManager = new UserManager($this->entityTypeManager,$current_user,$this->dataHandler,$logger_factory);
 
   }
 
@@ -137,5 +169,39 @@ class SocialPostUserTest extends UnitTestCase {
 
     $this->assertEquals(NULL, $this->dataHandler->get('x1Sn2lPZZ'));
   }
+
+  /**
+   * Tests the authenticate method with no account returned.
+   *
+   * @covers Drupal\social_post\User\UserManager::checkIfUserExists
+   */
+   public function testCheckIfUserExistsWithNoUserReturned() {
+     $this->userStorage->expects($this->once())
+       ->method('loadByProperties')
+       ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->provider_user_id])
+       ->will($this->returnValue([]));
+       $this->userManager->setPluginId($this->pluginId);
+       $this->assertFalse($this->userManager->checkIfUserExists($this->provider_user_id));
+   }
+
+   /**
+    * Tests the authenticate method with account returned.
+    *
+    * @covers Drupal\social_post\User\UserManager::checkIfUserExists
+    */
+    public function testCheckIfUserExistsWithUserReturned() {
+      $this->socialPost->expects($this->any())
+        ->method('getUserId')
+        ->will($this->returnValue(97212));
+
+      $this->userStorage->expects($this->once())
+        ->method('loadByProperties')
+        ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->provider_user_id])
+        ->will($this->returnValue(array($this->socialPost)));
+
+        $this->userManager->setPluginId($this->pluginId);
+        $this->assertEquals(97212, $this->userManager->checkIfUserExists($this->provider_user_id));
+    }
+
 
 }
