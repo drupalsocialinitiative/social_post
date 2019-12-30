@@ -211,6 +211,16 @@ class UserManager {
   }
 
   /**
+   * Gets the session keys.
+   *
+   * @return array
+   *   The session keys array
+   */
+  public function getSessionKeys() {
+    return $this->sessionKeys;
+  }
+
+  /**
    * Sets the session keys to nullify if user could not logged in.
    *
    * @param array $session_keys
@@ -226,7 +236,7 @@ class UserManager {
   public function nullifySessionKeys() {
     if (!empty($this->sessionKeys)) {
       array_walk($this->sessionKeys, function ($session_key) {
-        $this->dataHandler->set($this->dataHandler->getSessionPrefix() . $session_key, NULL);
+        $this->dataHandler->set($session_key, NULL);
       });
     }
   }
