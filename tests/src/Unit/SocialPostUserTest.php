@@ -47,21 +47,28 @@ class SocialPostUserTest extends UnitTestCase {
   protected $sessionKeys;
 
   /**
-   * The test plugin id
+   * The test plugin id.
    *
    * @var string
    */
   protected $pluginId = 'social_post_test';
 
   /**
+   * The test user id.
+   *
+   * @var int
+   */
+  protected $userId = 21353;
+
+  /**
    * The test provider user id.
    *
    * @var string
    */
-  protected $provider_user_id = 'some_id';
+  protected $providerUserId = 'some_id';
 
   /**
-   * The mocked Social Post
+   * The mocked Social Post.
    *
    * @var \Drupal\social_post\Entity\SocialPost
    */
@@ -91,7 +98,7 @@ class SocialPostUserTest extends UnitTestCase {
 
     $this->sessionKeys = [];
 
-    $this->userManager = new UserManager($this->entityTypeManager,$current_user,$this->dataHandler,$logger_factory);
+    $this->userManager = new UserManager($this->entityTypeManager, $current_user, $this->dataHandler, $logger_factory);
 
   }
 
@@ -171,37 +178,66 @@ class SocialPostUserTest extends UnitTestCase {
   }
 
   /**
-   * Tests the authenticate method with no account returned.
+   * Tests the checkIfUserExists method with no account returned.
    *
    * @covers Drupal\social_post\User\UserManager::checkIfUserExists
    */
-   public function testCheckIfUserExistsWithNoUserReturned() {
-     $this->userStorage->expects($this->once())
-       ->method('loadByProperties')
-       ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->provider_user_id])
-       ->will($this->returnValue([]));
-       $this->userManager->setPluginId($this->pluginId);
-       $this->assertFalse($this->userManager->checkIfUserExists($this->provider_user_id));
-   }
+  public function testCheckIfUserExistsWithNoUserReturned() {
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([]));
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertFalse($this->userManager->checkIfUserExists($this->providerUserId));
+  }
 
-   /**
-    * Tests the authenticate method with account returned.
-    *
-    * @covers Drupal\social_post\User\UserManager::checkIfUserExists
-    */
-    public function testCheckIfUserExistsWithUserReturned() {
-      $this->socialPost->expects($this->any())
-        ->method('getUserId')
-        ->will($this->returnValue(97212));
+  /**
+   * Tests the checkIfUserExists method with account returned.
+   *
+   * @covers Drupal\social_post\User\UserManager::checkIfUserExists
+   */
+  public function testCheckIfUserExistsWithUserReturned() {
+    $this->socialPost->expects($this->any())
+      ->method('getUserId')
+      ->will($this->returnValue(97212));
 
-      $this->userStorage->expects($this->once())
-        ->method('loadByProperties')
-        ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->provider_user_id])
-        ->will($this->returnValue(array($this->socialPost)));
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([$this->socialPost]));
 
-        $this->userManager->setPluginId($this->pluginId);
-        $this->assertEquals(97212, $this->userManager->checkIfUserExists($this->provider_user_id));
-    }
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertEquals(97212, $this->userManager->checkIfUserExists($this->providerUserId));
+  }
 
+  /**
+   * Tests the getAccountsByUserId method with no account returned.
+   *
+   * @covers Drupal\social_post\User\UserManager::getAccountsByUserId
+   */
+  public function testGetAccountsByUserIdWithNoAccountReturned() {
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['user_id' => $this->userId, 'plugin_id' => $this->pluginId])
+      ->will($this->returnValue([]));
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertEquals([], $this->userManager->getAccountsByUserId($this->userId));
+  }
+
+  /**
+   * Tests the getAccountsByUserId method with account returned.
+   *
+   * @covers Drupal\social_post\User\UserManager::getAccountsByUserId
+   */
+  public function testGetAccountsByUserIdWithAccountReturned() {
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['user_id' => $this->userId, 'plugin_id' => $this->pluginId])
+      ->will($this->returnValue(['test']));
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertEquals(['test'], $this->userManager->getAccountsByUserId($this->userId));
+  }
 
 }
