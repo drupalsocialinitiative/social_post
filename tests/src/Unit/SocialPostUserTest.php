@@ -33,6 +33,13 @@ class SocialPostUserTest extends UnitTestCase {
   protected $dataHandler;
 
   /**
+   * The mocked current logged in Drupal user.
+   *
+   * @var \Drupal\Core\Session\AccountProxy
+   */
+  protected $currentUser;
+
+  /**
    * The mocked Entity Type Manager.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
@@ -78,18 +85,17 @@ class SocialPostUserTest extends UnitTestCase {
    * {@inheritdoc}
    */
   public function setUp() {
-    $current_user = $this->createMock(AccountProxy::class);
-    $this->userStorage = $this->createMock(EntityStorageInterface::class);
 
+    $this->currentUser = $this->createMock(AccountProxy::class);
+    $logger_factory = $this->createMock(LoggerChannelFactoryInterface::class);
     $this->socialPost = $this->createMock(SocialPost::class);
+    $this->userStorage = $this->createMock(EntityStorageInterface::class);
 
     $this->entityTypeManager = $this->createMock(EntityTypeManagerInterface::class);
     $this->entityTypeManager->expects($this->any())
       ->method('getStorage')
       ->with('social_post')
       ->will($this->returnValue($this->userStorage));
-
-    $logger_factory = $this->createMock(LoggerChannelFactoryInterface::class);
 
     $this->dataHandler = $this->getMockBuilder(SocialPostDataHandler::class)
       ->disableOriginalConstructor()
@@ -98,8 +104,14 @@ class SocialPostUserTest extends UnitTestCase {
 
     $this->sessionKeys = [];
 
-    $this->userManager = new UserManager($this->entityTypeManager, $current_user, $this->dataHandler, $logger_factory);
-
+    $this->userManager = $this->getMockBuilder(UserManager::class)
+      ->setConstructorArgs([$this->entityTypeManager,
+        $this->currentUser,
+        $this->dataHandler,
+        $logger_factory,
+      ])
+      ->setMethods(NULL)
+      ->getMock();
   }
 
   /**
@@ -187,6 +199,7 @@ class SocialPostUserTest extends UnitTestCase {
       ->method('loadByProperties')
       ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
       ->will($this->returnValue([]));
+
     $this->userManager->setPluginId($this->pluginId);
     $this->assertFalse($this->userManager->checkIfUserExists($this->providerUserId));
   }
@@ -234,10 +247,211 @@ class SocialPostUserTest extends UnitTestCase {
     $this->userStorage->expects($this->once())
       ->method('loadByProperties')
       ->with(['user_id' => $this->userId, 'plugin_id' => $this->pluginId])
-      ->will($this->returnValue(['test']));
+      ->will($this->returnValue([$this->socialPost]));
 
     $this->userManager->setPluginId($this->pluginId);
-    $this->assertEquals(['test'], $this->userManager->getAccountsByUserId($this->userId));
+    $this->assertEquals([$this->socialPost], $this->userManager->getAccountsByUserId($this->userId));
+  }
+
+  /**
+   * @covers Drupal\social_post\User\UserManager::getCurrentUser
+   */
+  public function testGetCurrentUser() {
+    $this->currentUser->expects($this->once())
+      ->method('id')
+      ->will($this->returnValue(123));
+
+    $this->assertEquals(123, $this->userManager->getCurrentUser());
+  }
+
+  /**
+   * Tests the addRecord method when user exists.
+   *
+   * @covers Drupal\social_post\User\UserManager::addRecord
+   */
+  public function testAddRecordExist() {
+    $this->socialPost->expects($this->any())
+      ->method('getUserId')
+      ->will($this->returnValue(97212));
+
+    $this->currentUser->expects($this->once())
+      ->method('id')
+      ->will($this->returnValue(456));
+
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([$this->socialPost]));
+
+    $this->userManager->setPluginId($this->pluginId);
+
+    $this->assertFalse($this->userManager->addRecord('test', $this->providerUserId, 'f31a2f3SA', NULL));
+
+  }
+
+  /**
+   * Tests the addRecord method user doesn't exist and new created successfully.
+   *
+   * @covers Drupal\social_post\User\UserManager::addRecord
+   */
+  public function testAddRecordNoExistSuccess() {
+    $this->currentUser->expects($this->once())
+      ->method('id')
+      ->will($this->returnValue(456));
+
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([]));
+
+    $this->userStorage->expects($this->once())
+      ->method('create')
+      ->with($this->isType('array'))
+      ->will($this->returnValue($this->socialPost));
+
+    $this->socialPost->expects($this->once())
+      ->method('setToken')
+      ->with($this->isType('string'));
+
+    $this->socialPost->expects($this->once())
+      ->method('save');
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertTrue($this->userManager->addRecord('test', $this->providerUserId, 'jnh3q3q', NULL));
+
+  }
+
+  /**
+   * Tests the addRecord method user doesn't exist and failure creating new.
+   *
+   * @covers Drupal\social_post\User\UserManager::addRecord
+   */
+  public function testAddRecordNoExistFailure() {
+    $this->currentUser->expects($this->once())
+      ->method('id')
+      ->will($this->returnValue(456));
+
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([]));
+
+    $this->userStorage->expects($this->once())
+      ->method('create')
+      ->with($this->isType('array'))
+      ->will($this->returnValue($this->socialPost));
+
+    $this->socialPost->expects($this->once())
+      ->method('setToken')
+      ->with($this->isType('string'));
+
+    $this->socialPost->expects($this->once())
+      ->method('save')
+      ->will($this->returnCallback(function () {
+         unset($this->socialPost);
+      }));
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertFalse($this->userManager->addRecord('test', $this->providerUserId, 'jnh3q3q', NULL));
+  }
+
+  /**
+   * Tests the updateToken method with no account returned.
+   *
+   * @covers Drupal\social_post\User\UserManager::updateToken
+   */
+  public function testUpdateTokenWithNoAccountReturned() {
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([]));
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertFalse($this->userManager->updateToken($this->pluginId, $this->providerUserId, 'ba2w8gf2a68f'));
+  }
+
+  /**
+   * Tests the updateToken method account returned and successfully updating.
+   *
+   * @covers Drupal\social_post\User\UserManager::updateToken
+   */
+  public function testUpdateTokenWithAccountReturnedSuccess() {
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([$this->socialPost]));
+
+    $this->socialPost->expects($this->once())
+      ->method('setToken')
+      ->with($this->isType('string'))
+      ->will($this->returnValue($this->socialPost));
+
+    $this->socialPost->expects($this->once())
+      ->method('save');
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertTrue($this->userManager->updateToken($this->pluginId, $this->providerUserId, 'ba2w8gf2a68f'));
+  }
+
+  /**
+   * Tests the updateToken method with account returned and failure updating.
+   *
+   * @covers Drupal\social_post\User\UserManager::updateToken
+   */
+  public function testUpdateTokenWithAccountReturnedFailure() {
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([$this->socialPost]));
+
+    $this->socialPost->expects($this->once())
+      ->method('setToken')
+      ->with($this->isType('string'))
+      ->will($this->returnValue($this->socialPost));
+
+    $this->socialPost->expects($this->once())
+      ->method('save')
+      ->will($this->returnCallback(function () {
+              throw new \Exception('test');
+      }));
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->expectException("Exception");
+    $this->assertFalse($this->userManager->updateToken($this->pluginId, $this->providerUserId, 'ba2w8gf2a68f'));
+  }
+
+  /**
+   * Tests the getToken method with no account returned.
+   *
+   * @covers Drupal\social_post\User\UserManager::getToken
+   */
+  public function testGetTokenWithNoAccountReturned() {
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([]));
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertNull($this->userManager->getToken($this->providerUserId));
+  }
+
+  /**
+   * Tests the getToken method with token returned.
+   *
+   * @covers Drupal\social_post\User\UserManager::getToken
+   */
+  public function testGetTokenWithTokenReturned() {
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([$this->socialPost]));
+
+    $this->socialPost->expects($this->once())
+      ->method('getToken')
+      ->will($this->returnValue('cn7a2ASh2'));
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertEquals('cn7a2ASh2', $this->userManager->getToken($this->providerUserId));
   }
 
 }
