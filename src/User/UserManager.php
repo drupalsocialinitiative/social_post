@@ -198,19 +198,28 @@ class UserManager {
     ];
 
     $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
-    if ($user_info) {
+
+    if (!$user_info) {
+      return FALSE;
+    }
+
+    try {
       $user_info->setToken($token);
 
       // Saves the entity.
       $user_info->save();
 
-      if ($user_info) {
-        return TRUE;
-      }
+      return TRUE;
 
+    }
+    catch (\Exception $ex) {
+      $this->loggerFactory
+        ->get($this->getPluginId())
+        ->error('Failed to add record. Exception: @message', ['@message' => $ex->getMessage()]);
     }
 
     return FALSE;
+
   }
 
   /**

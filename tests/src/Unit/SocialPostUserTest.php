@@ -5,6 +5,7 @@ namespace Drupal\Tests\social_post\Unit;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Session\AccountProxy;
 use Drupal\social_post\Entity\SocialPost;
 use Drupal\social_post\SocialPostDataHandler;
@@ -38,6 +39,13 @@ class SocialPostUserTest extends UnitTestCase {
    * @var \Drupal\Core\Session\AccountProxy
    */
   protected $currentUser;
+
+  /**
+   * The mocked LoggerChannelFactoryInterface.
+   *
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   */
+  protected $loggerFactory;
 
   /**
    * The mocked Entity Type Manager.
@@ -87,7 +95,7 @@ class SocialPostUserTest extends UnitTestCase {
   public function setUp() {
 
     $this->currentUser = $this->createMock(AccountProxy::class);
-    $logger_factory = $this->createMock(LoggerChannelFactoryInterface::class);
+    $this->loggerFactory = $this->createMock(LoggerChannelFactoryInterface::class);
     $this->socialPost = $this->createMock(SocialPost::class);
     $this->userStorage = $this->createMock(EntityStorageInterface::class);
 
@@ -108,7 +116,7 @@ class SocialPostUserTest extends UnitTestCase {
       ->setConstructorArgs([$this->entityTypeManager,
         $this->currentUser,
         $this->dataHandler,
-        $logger_factory,
+        $this->loggerFactory,
       ])
       ->setMethods(NULL)
       ->getMock();
@@ -340,6 +348,47 @@ class SocialPostUserTest extends UnitTestCase {
       ->method('create')
       ->with($this->isType('array'))
       ->will($this->returnValue(NULL));
+
+    $this->userManager->setPluginId($this->pluginId);
+    $this->assertFalse($this->userManager->addRecord('test', $this->providerUserId, 'jnh3q3q', NULL));
+  }
+
+  /**
+   * Tests the addRecord method user doesn't exist and exception while creating.
+   *
+   * @covers Drupal\social_post\User\UserManager::addRecord
+   */
+  public function testAddRecordNoExistException() {
+    $logger = $this->createMock(LoggerChannelInterface::class);
+    $this->currentUser->expects($this->once())
+      ->method('id')
+      ->will($this->returnValue(456));
+
+    $this->userStorage->expects($this->once())
+      ->method('loadByProperties')
+      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
+      ->will($this->returnValue([]));
+
+    $this->userStorage->expects($this->once())
+      ->method('create')
+      ->with($this->isType('array'))
+      ->will($this->returnValue($this->socialPost));
+
+    $this->socialPost->expects($this->once())
+      ->method('setToken')
+      ->with($this->isType('string'))
+      ->will($this->returnCallback(function () {
+        throw new \Exception('test');
+      }));
+
+    $this->loggerFactory->expects($this->once())
+      ->method('get')
+      ->with($this->pluginId)
+      ->will($this->returnValue($logger));
+
+    $logger->expects($this->once())
+      ->method('error')
+      ->with($this->anything());
 
     $this->userManager->setPluginId($this->pluginId);
     $this->assertFalse($this->userManager->addRecord('test', $this->providerUserId, 'jnh3q3q', NULL));
