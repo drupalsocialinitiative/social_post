@@ -339,17 +339,7 @@ class SocialPostUserTest extends UnitTestCase {
     $this->userStorage->expects($this->once())
       ->method('create')
       ->with($this->isType('array'))
-      ->will($this->returnValue($this->socialPost));
-
-    $this->socialPost->expects($this->once())
-      ->method('setToken')
-      ->with($this->isType('string'));
-
-    $this->socialPost->expects($this->once())
-      ->method('save')
-      ->will($this->returnCallback(function () {
-         unset($this->socialPost);
-      }));
+      ->will($this->returnValue(NULL));
 
     $this->userManager->setPluginId($this->pluginId);
     $this->assertFalse($this->userManager->addRecord('test', $this->providerUserId, 'jnh3q3q', NULL));

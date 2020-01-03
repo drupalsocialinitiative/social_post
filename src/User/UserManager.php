@@ -198,13 +198,16 @@ class UserManager {
     ];
 
     $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
-    $user_info->setToken($token);
-
-    // Saves the entity.
-    $user_info->save();
-
     if ($user_info) {
-      return TRUE;
+      $user_info->setToken($token);
+
+      // Saves the entity.
+      $user_info->save();
+
+      if ($user_info) {
+        return TRUE;
+      }
+
     }
 
     return FALSE;
