@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\social_post\Unit;
 
+use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -22,7 +23,7 @@ class SocialPostUserTest extends UnitTestCase {
   /**
    * The tested Social Post UserManager.
    *
-   * @var \Drupal\social_post\User\UserManager
+   * @var \Drupal\social_post\User\UserManager|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $userManager;
 
@@ -278,21 +279,18 @@ class SocialPostUserTest extends UnitTestCase {
    * @covers Drupal\social_post\User\UserManager::addRecord
    */
   public function testAddRecordExist() {
-    $this->socialPost->expects($this->any())
-      ->method('getUserId')
-      ->will($this->returnValue(97212));
+    $this->prepareAddRecord();
 
-    $this->currentUser->expects($this->once())
-      ->method('id')
-      ->will($this->returnValue(456));
+    $this->userManager->expects($this->once())
+      ->method('getCurrentUser')
+      ->will($this->returnValue(12345));
 
-    $this->userStorage->expects($this->once())
-      ->method('loadByProperties')
-      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
-      ->will($this->returnValue([$this->socialPost]));
+    $this->userManager->expects($this->once())
+      ->method('checkIfUserExists')
+      ->with($this->providerUserId)
+      ->will($this->returnValue(12345));
 
     $this->userManager->setPluginId($this->pluginId);
-
     $this->assertFalse($this->userManager->addRecord('test', $this->providerUserId, 'f31a2f3SA', NULL));
 
   }
@@ -303,14 +301,16 @@ class SocialPostUserTest extends UnitTestCase {
    * @covers Drupal\social_post\User\UserManager::addRecord
    */
   public function testAddRecordNoExistSuccess() {
-    $this->currentUser->expects($this->once())
-      ->method('id')
-      ->will($this->returnValue(456));
+    $this->prepareAddRecord();
 
-    $this->userStorage->expects($this->once())
-      ->method('loadByProperties')
-      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
-      ->will($this->returnValue([]));
+    $this->userManager->expects($this->once())
+      ->method('getCurrentUser')
+      ->will($this->returnValue(12345));
+
+    $this->userManager->expects($this->once())
+      ->method('checkIfUserExists')
+      ->with($this->providerUserId)
+      ->will($this->returnValue(FALSE));
 
     $this->userStorage->expects($this->once())
       ->method('create')
@@ -335,14 +335,16 @@ class SocialPostUserTest extends UnitTestCase {
    * @covers Drupal\social_post\User\UserManager::addRecord
    */
   public function testAddRecordNoExistFailure() {
-    $this->currentUser->expects($this->once())
-      ->method('id')
-      ->will($this->returnValue(456));
+    $this->prepareAddRecord();
 
-    $this->userStorage->expects($this->once())
-      ->method('loadByProperties')
-      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
-      ->will($this->returnValue([]));
+    $this->userManager->expects($this->once())
+      ->method('getCurrentUser')
+      ->will($this->returnValue(12345));
+
+    $this->userManager->expects($this->once())
+      ->method('checkIfUserExists')
+      ->with($this->providerUserId)
+      ->will($this->returnValue(FALSE));
 
     $this->userStorage->expects($this->once())
       ->method('create')
@@ -359,15 +361,17 @@ class SocialPostUserTest extends UnitTestCase {
    * @covers Drupal\social_post\User\UserManager::addRecord
    */
   public function testAddRecordNoExistException() {
+    $this->prepareAddRecord();
     $logger = $this->createMock(LoggerChannelInterface::class);
-    $this->currentUser->expects($this->once())
-      ->method('id')
-      ->will($this->returnValue(456));
 
-    $this->userStorage->expects($this->once())
-      ->method('loadByProperties')
-      ->with(['plugin_id' => $this->pluginId, 'provider_user_id' => $this->providerUserId])
-      ->will($this->returnValue([]));
+    $this->userManager->expects($this->once())
+      ->method('getCurrentUser')
+      ->will($this->returnValue(12345));
+
+    $this->userManager->expects($this->once())
+      ->method('checkIfUserExists')
+      ->with($this->providerUserId)
+      ->will($this->returnValue(FALSE));
 
     $this->userStorage->expects($this->once())
       ->method('create')
@@ -376,9 +380,12 @@ class SocialPostUserTest extends UnitTestCase {
 
     $this->socialPost->expects($this->once())
       ->method('setToken')
-      ->with($this->isType('string'))
+      ->with($this->isType('string'));
+
+    $this->socialPost->expects($this->once())
+      ->method('save')
       ->will($this->returnCallback(function () {
-        throw new \Exception('test');
+        throw new EntityStorageException('Message');
       }));
 
     $this->loggerFactory->expects($this->once())
@@ -388,7 +395,7 @@ class SocialPostUserTest extends UnitTestCase {
 
     $logger->expects($this->once())
       ->method('error')
-      ->with($this->anything());
+      ->with('Failed to add a record for the user with id: @user_id. Exception: @message');
 
     $this->userManager->setPluginId($this->pluginId);
     $this->assertFalse($this->userManager->addRecord('test', $this->providerUserId, 'jnh3q3q', NULL));
@@ -491,6 +498,21 @@ class SocialPostUserTest extends UnitTestCase {
 
     $this->userManager->setPluginId($this->pluginId);
     $this->assertEquals('cn7a2ASh2', $this->userManager->getToken($this->providerUserId));
+  }
+
+  /**
+   * UserManager with mocked methods for addRecord tests.
+   */
+  protected function prepareAddRecord() {
+    unset($this->userManager);
+    $this->userManager = $this->getMockBuilder(UserManager::class)
+      ->setConstructorArgs([$this->entityTypeManager,
+        $this->currentUser,
+        $this->dataHandler,
+        $this->loggerFactory,
+      ])
+      ->setMethods(['getCurrentUser', 'checkIfUserExists'])
+      ->getMock();
   }
 
 }

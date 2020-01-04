@@ -212,10 +212,10 @@ class UserManager {
       return TRUE;
 
     }
-    catch (\Exception $ex) {
+    catch (EntityStorageException $ex) {
       $this->loggerFactory
         ->get($this->getPluginId())
-        ->error('Failed to add record. Exception: @message', ['@message' => $ex->getMessage()]);
+        ->error('Failed to add a record for the user with id: @user_id. Exception: @message', ['@user_id' => $user_id, '@message' => $ex->getMessage()]);
     }
 
     return FALSE;
