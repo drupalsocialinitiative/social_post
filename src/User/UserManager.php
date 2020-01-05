@@ -181,12 +181,13 @@ class UserManager {
    *   True if User record was created or False otherwise
    */
   public function addRecord($name, $provider_user_id, $token, $additional_data = NULL) {
-    // Get User ID of logged in user.
-    $user_id = $this->getCurrentUser();
 
     if ($this->checkIfUserExists($provider_user_id)) {
       return FALSE;
     }
+
+    // Get User ID of logged in user.
+    $user_id = $this->getCurrentUser();
 
     // Adds user record.
     $values = [

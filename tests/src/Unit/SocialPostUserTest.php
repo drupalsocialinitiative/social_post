@@ -282,10 +282,6 @@ class SocialPostUserTest extends UnitTestCase {
     $this->prepareAddRecord();
 
     $this->userManager->expects($this->once())
-      ->method('getCurrentUser')
-      ->will($this->returnValue(12345));
-
-    $this->userManager->expects($this->once())
       ->method('checkIfUserExists')
       ->with($this->providerUserId)
       ->will($this->returnValue(12345));
