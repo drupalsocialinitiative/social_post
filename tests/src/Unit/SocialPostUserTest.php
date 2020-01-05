@@ -384,9 +384,7 @@ class SocialPostUserTest extends UnitTestCase {
 
     $this->socialPost->expects($this->once())
       ->method('save')
-      ->will($this->returnCallback(function () {
-        throw new EntityStorageException('Message');
-      }));
+      ->will($this->throwException(new EntityStorageException("Message")));
 
     $this->loggerFactory->expects($this->once())
       ->method('get')
@@ -457,9 +455,7 @@ class SocialPostUserTest extends UnitTestCase {
 
     $this->socialPost->expects($this->once())
       ->method('save')
-      ->will($this->returnCallback(function () {
-              throw new \Exception('test');
-      }));
+      ->will($this->throwException(new \Exception("test")));
 
     $this->userManager->setPluginId($this->pluginId);
     $this->expectException("Exception");
