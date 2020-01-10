@@ -30,28 +30,28 @@ class SocialPostUserTest extends UnitTestCase {
   /**
    * The mocked Social Post Data Handler.
    *
-   * @var \Drupal\social_post\SocialPostDataHandler
+   * @var \Drupal\social_post\SocialPostDataHandler|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $dataHandler;
 
   /**
    * The mocked current logged in Drupal user.
    *
-   * @var \Drupal\Core\Session\AccountProxy
+   * @var \Drupal\Core\Session\AccountProxy|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $currentUser;
 
   /**
    * The mocked LoggerChannelFactoryInterface.
    *
-   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface
+   * @var \Drupal\Core\Logger\LoggerChannelFactoryInterface|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $loggerFactory;
 
   /**
    * The mocked Entity Type Manager.
    *
-   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $entityTypeManager;
 
@@ -86,7 +86,7 @@ class SocialPostUserTest extends UnitTestCase {
   /**
    * The mocked Social Post.
    *
-   * @var \Drupal\social_post\Entity\SocialPost
+   * @var \Drupal\social_post\Entity\SocialPost|\PHPUnit_Framework_MockObject_MockObject
    */
   protected $socialPost;
 
