@@ -181,12 +181,13 @@ class UserManager {
    *   True if User record was created or False otherwise
    */
   public function addRecord($name, $provider_user_id, $token, $additional_data = NULL) {
-    // Get User ID of logged in user.
-    $user_id = $this->getCurrentUser();
 
     if ($this->checkIfUserExists($provider_user_id)) {
       return FALSE;
     }
+
+    // Get User ID of logged in user.
+    $user_id = $this->getCurrentUser();
 
     // Adds user record.
     $values = [
@@ -198,16 +199,38 @@ class UserManager {
     ];
 
     $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
-    $user_info->setToken($token);
 
-    // Saves the entity.
-    $user_info->save();
+    if (!$user_info) {
+      return FALSE;
+    }
 
-    if ($user_info) {
+    try {
+      $user_info->setToken($token);
+
+      // Saves the entity.
+      $user_info->save();
+
       return TRUE;
+
+    }
+    catch (EntityStorageException $ex) {
+      $this->loggerFactory
+        ->get($this->getPluginId())
+        ->error('Failed to add a record for the user with id: @user_id. Exception: @message', ['@user_id' => $user_id, '@message' => $ex->getMessage()]);
     }
 
     return FALSE;
+
+  }
+
+  /**
+   * Gets the session keys.
+   *
+   * @return array
+   *   The session keys array
+   */
+  public function getSessionKeys() {
+    return $this->sessionKeys;
   }
 
   /**
@@ -226,7 +249,7 @@ class UserManager {
   public function nullifySessionKeys() {
     if (!empty($this->sessionKeys)) {
       array_walk($this->sessionKeys, function ($session_key) {
-        $this->dataHandler->set($this->dataHandler->getSessionPrefix() . $session_key, NULL);
+        $this->dataHandler->set($session_key, NULL);
       });
     }
   }
