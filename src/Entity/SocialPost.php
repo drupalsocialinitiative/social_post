@@ -136,7 +136,7 @@ class SocialPost extends SocialApi implements ContentEntityInterface {
       ->setDescription(t('The unique user ID in the provider.'))
       ->setReadOnly(TRUE);
 
-    // Access Token returned by social network provider, used for autoposting.
+    // Additional data about the user.
     $fields['additional_data'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Additional Data'))
       ->setDescription(t('Additional_dara'))

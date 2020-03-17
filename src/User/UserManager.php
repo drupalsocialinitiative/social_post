@@ -136,36 +136,6 @@ class UserManager {
   }
 
   /**
-   * Gets the Social Post records associated with a user and a provider.
-   *
-   * @param string $user_id
-   *   The Drupal user ID.
-   *
-   * @return \Drupal\Core\Entity\EntityInterface[]
-   *   An array of Social Post records associated with the user.
-   */
-  public function getAccountsByUserId($user_id) {
-    $storage = $this->entityTypeManager->getStorage('social_post');
-    // Perform query on social auth entity.
-    $accounts = $storage->loadByProperties([
-      'user_id' => $user_id,
-      'plugin_id' => $this->pluginId,
-    ]);
-
-    return $accounts;
-  }
-
-  /**
-   * Get ID of logged in user.
-   *
-   * @return int
-   *   The current Drupal user ID.
-   */
-  public function getCurrentUser() {
-    return $this->currentUser->id();
-  }
-
-  /**
    * Add user record in Social Post Entity.
    *
    * @param string $name
@@ -182,32 +152,62 @@ class UserManager {
    */
   public function addRecord($name, $provider_user_id, $token, $additional_data = NULL) {
     // Get User ID of logged in user.
-    $user_id = $this->getCurrentUser();
+    $user_id = $this->currentUser->id();
 
     if ($this->checkIfUserExists($provider_user_id)) {
       return FALSE;
     }
 
-    // Adds user record.
     $values = [
       'user_id' => $user_id,
       'plugin_id' => $this->pluginId,
       'provider_user_id' => $provider_user_id,
       'name' => $name,
       'additional_data' => $additional_data,
+      'token' => $token,
     ];
 
-    $user_info = $this->entityTypeManager->getStorage('social_post')->create($values);
-    $user_info->setToken($token);
+    try {
+      // Adds user record.
+      $this->entityTypeManager->getStorage('social_post')->create($values)->save();
 
-    // Saves the entity.
-    $user_info->save();
-
-    if ($user_info) {
       return TRUE;
+    }
+    catch (EntityStorageException $e) {
+      $this->loggerFactory->get('social_post')
+        ->error('Could not save user. Exception @exception', [
+          '@exception' => $e->getMessage(),
+        ]);
     }
 
     return FALSE;
+  }
+
+  /**
+   * Gets the Social Post records associated with a user and a provider.
+   *
+   * @param string $plugin_id
+   *   The plugin for which to get the accounts.
+   * @param string|null $user_id
+   *   The Drupal user ID.
+   *
+   * @return \Drupal\social_post\Entity\SocialPost[]
+   *   An array of Social Post records associated with the user.
+   */
+  public function getAccounts($plugin_id, $user_id = NULL) {
+    $storage = $this->entityTypeManager->getStorage('social_post');
+
+    if (!$user_id) {
+      $user_id = $this->currentUser->id();
+    }
+
+    // Get the accounts associated to the user.
+    $accounts = $storage->loadByProperties([
+      'user_id' => $user_id,
+      'plugin_id' => $plugin_id,
+    ]);
+
+    return $accounts;
   }
 
   /**
@@ -276,34 +276,6 @@ class UserManager {
 
       return FALSE;
     }
-  }
-
-  /**
-   * Returns the user's token for a provider.
-   *
-   * @param string $provider_user_id
-   *   Unique user ID in the provider.
-   *
-   * @return string|null
-   *   The token or null if user is not found.
-   */
-  public function getToken($provider_user_id) {
-
-    // Checks user for social post implementer.
-    /** @var \Drupal\social_post\Entity\SocialPost|false $social_post_user */
-    $social_post_user = current(
-      $this->entityTypeManager->getStorage('social_post')
-        ->loadByProperties([
-          'plugin_id' => $this->pluginId,
-          'provider_user_id' => $provider_user_id,
-        ])
-    );
-
-    if ($social_post_user === FALSE) {
-      return NULL;
-    }
-
-    return $social_post_user->getToken();
   }
 
 }
