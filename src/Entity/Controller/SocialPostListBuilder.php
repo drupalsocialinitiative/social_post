@@ -105,9 +105,14 @@ class SocialPostListBuilder extends EntityListBuilder {
     if ($provider == 'social_post_' . $this->provider) {
       $row['provider_user_id'] = $entity->getProviderUserId();
 
-      // Generates URL to user profile.
+      // Generates (or not) URL to user profile.
       $link = $entity->getLink();
-      $row['social_post_name'] = Link::fromTextAndUrl($link->title, $link->getUrl());
+      if ($link->isEmpty()) {
+        $row['social_post_name'] = $entity->getName();
+      }
+      else {
+        $row['social_post_name'] = Link::fromTextAndUrl($link->title, $link->getUrl());
+      }
 
       $user = $this->userEntity->load($entity->getUserId());
       $row['user'] = $user->toLink();
