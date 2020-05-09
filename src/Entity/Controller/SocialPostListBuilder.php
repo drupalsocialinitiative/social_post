@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Link;
 use Drupal\Core\Routing\UrlGeneratorInterface;
 use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -94,13 +95,19 @@ class SocialPostListBuilder extends EntityListBuilder {
 
   /**
    * {@inheritdoc}
+   *
+   * @param \Drupal\social_post\Entity\SocialPost|Drupal\Core\Entity\EntityTypeInterface $entity
+   *   The Social Post entity to render.
    */
   public function buildRow(EntityInterface $entity) {
     $provider = $entity->getPluginId();
 
     if ($provider == 'social_post_' . $this->provider) {
       $row['provider_user_id'] = $entity->getProviderUserId();
-      $row['social_post_name'] = $entity->getName();
+
+      // Generates URL to user profile.
+      $link = $entity->getLink();
+      $row['social_post_name'] = Link::fromTextAndUrl($link->title, $link->getUrl());
 
       $user = $this->userEntity->load($entity->getUserId());
       $row['user'] = $user->toLink();
@@ -114,6 +121,9 @@ class SocialPostListBuilder extends EntityListBuilder {
 
   /**
    * {@inheritdoc}
+   *
+   * @param \Drupal\social_post\Entity\SocialPost|Drupal\Core\Entity\EntityTypeInterface $entity
+   *   The Social Post entity to process.
    */
   public function getDefaultOperations(EntityInterface $entity) {
 

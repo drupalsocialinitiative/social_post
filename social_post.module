@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the Social Post LinkedIn.
+ */
+
+use Drupal\Core\Field\BaseFieldDefinition;
+
+/**
+ * Implements hook_updat_N().
+ */
+function social_post_update_8201() {
+  $definition_manager = \Drupal::entityDefinitionUpdateManager();
+
+  // Creates a new field definition.
+  $link_field = BaseFieldDefinition::create('link')
+    ->setLabel(t('Link'))
+    ->setDescription(t("Link to the user's profile in the provider."));
+
+  $bundle_of = 'social_post';
+
+  // Installs the new definition.
+  $definition_manager->installFieldStorageDefinition('link', $bundle_of, $bundle_of, $link_field);
+}

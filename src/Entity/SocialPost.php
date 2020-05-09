@@ -2,10 +2,10 @@
 
 namespace Drupal\social_post\Entity;
 
-use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityChangedTrait;
+use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\social_api\Entity\SocialApi;
 
 /**
@@ -30,6 +30,9 @@ use Drupal\social_api\Entity\SocialApi;
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid",
+ *     "user_id" = "user_id",
+ *     "plugin_id" = "plugin_id",
+ *     "provider_user_id" = "provider_user_id"
  *   },
  *   links = {
  *     "delete-form" = "/admin/config/social-api/social-post/users/social_post/{provider}/{social_post}/delete/{user}",
@@ -39,6 +42,19 @@ use Drupal\social_api\Entity\SocialApi;
  */
 class SocialPost extends SocialApi implements ContentEntityInterface {
   use EntityChangedTrait;
+
+  /**
+   * Gets the record ID in this entity.
+   *
+   * This ID is mainly used to perform operations such as deleting or updating
+   * the record.
+   *
+   * @return string
+   *   The record ID.
+   */
+  public function getId() {
+    return (int) $this->get('id')->value;
+  }
 
   /**
    * Gets User ID in provider.
@@ -51,43 +67,43 @@ class SocialPost extends SocialApi implements ContentEntityInterface {
   }
 
   /**
-   * Gets social post implementer name.
+   * Gets implementer used to create the record.
    *
    * @return string
-   *   Impelementer name.
+   *   Impelementer's name.
    */
   public function getPluginId() {
     return $this->get('plugin_id')->value;
   }
 
   /**
-   * Gets name provided by the Social Provider.
+   * Gets the user's name in the provider.
    *
    * @return string
-   *   Name provided by the Social Provider
+   *   User's name in the provider
    */
   public function getName() {
     return $this->get('name')->value;
   }
 
   /**
-   * Gets ID provided by the Social Provider.
-   *
-   * @return string
-   *   ID
-   */
-  public function getId() {
-    return (int) $this->get('id')->value;
-  }
-
-  /**
-   * Gets id of user accociated.
+   * Gets the Drupal user ID associated to the record.
    *
    * @return int
    *   User ID.
    */
   public function getUserId() {
-    return (int) $this->get('user_id')->getValue()[0]['target_id'];
+    return (int) $this->get('user_id')->target_id;
+  }
+
+  /**
+   * Gets the link to the user's profile in provider.
+   *
+   * @return \Drupal\link\Plugin\Field\FieldType\LinkItem
+   *   The link object containing the url to the user's profile.
+   */
+  public function getLink() {
+    return $this->get('link')[0];
   }
 
   /**
@@ -102,45 +118,44 @@ class SocialPost extends SocialApi implements ContentEntityInterface {
       ->setSetting('unsigned', TRUE);
 
     $fields['uuid'] = BaseFieldDefinition::create('uuid')
-      ->setLabel(t('ID'))
+      ->setLabel(t('UUID'))
       ->setDescription(t('The Social Post user UUID.'))
       ->setReadOnly(TRUE);
 
-    // The ID of user account associated.
+    // The Drupal user ID associated to the record.
     $fields['user_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('user_id'))
-      ->setDescription(t('The ID Of User Account Associated With Social Network.'))
-      ->setReadOnly(TRUE);
+      ->setLabel(t('User ID'))
+      ->setDescription(t('The Drupal user ID associated to the record.'));
 
-    // Name of the social network account associated.
+    // The implementer used to register the user.
     $fields['plugin_id'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('PLUGIN ID'))
-      ->setDescription(t('Identifier for social post implementer.'))
-      ->setReadOnly(TRUE);
+      ->setLabel(t('Plugin ID'))
+      ->setDescription(t('The implementer used to register the user.'));
 
-    // Unique Account ID returned by the social network provider.
+    // Unique Account ID returned by provider.
     $fields['provider_user_id'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('PROVIDER USER ID'))
-      ->setDescription(t('The Unique ID Provided by Social Network.'))
-      ->setReadOnly(TRUE);
+      ->setLabel(t('Provider User ID'))
+      ->setDescription(t('The unique user ID in the provider.'));
 
-    // Unique Account ID returned by the social network provider.
+    // User's name in the provider.
     $fields['name'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Name'))
-      ->setDescription(t('Name provided by the Social Provider'))
-      ->setReadOnly(TRUE);
+      ->setDescription(t("User's name in the provider"));
 
-    // Access Token returned by social network provider, used for autoposting.
+    // Access token returned by provider, used for autoposting.
     $fields['token'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Token'))
-      ->setDescription(t('The unique user ID in the provider.'))
-      ->setReadOnly(TRUE);
+      ->setDescription(t('Token returned after authentication'));
 
     // Additional data about the user.
     $fields['additional_data'] = BaseFieldDefinition::create('string_long')
       ->setLabel(t('Additional Data'))
-      ->setDescription(t('Additional_dara'))
-      ->setReadOnly(TRUE);
+      ->setDescription(t('Additional data about the user'));
+
+    // Link to the user's profile in the provider.
+    $fields['link'] = BaseFieldDefinition::create('link')
+      ->setLabel(t('Link'))
+      ->setDescription(t("Link to the user's profile in the provider."));
 
     return $fields;
   }
