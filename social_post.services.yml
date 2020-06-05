@@ -1,13 +1,21 @@
 services:
+  social_post.user_authenticator:
+    class: Drupal\social_post\User\UserAuthenticator
+    arguments:
+      - '@current_user'
+      - '@messenger'
+      - '@logger.factory'
+      - '@social_post.user_manager'
+      - '@social_post.data_handler'
+
   social_post.user_manager:
     class: Drupal\social_post\User\UserManager
     arguments:
       - '@entity_type.manager'
-      - '@current_user'
-      - '@social_post.data_handler'
+      - '@messenger'
       - '@logger.factory'
 
   social_post.data_handler:
-    class: Drupal\social_post\SocialPostDataHandler
+    class: Drupal\social_post\DataHandler
     arguments:
       - '@session'

@@ -87,16 +87,6 @@ class SocialPost extends SocialApi implements ContentEntityInterface {
   }
 
   /**
-   * Gets the Drupal user ID associated to the record.
-   *
-   * @return int
-   *   User ID.
-   */
-  public function getUserId() {
-    return (int) $this->get('user_id')->target_id;
-  }
-
-  /**
    * Gets the link to the user's profile in provider.
    *
    * @return \Drupal\link\Plugin\Field\FieldType\LinkItem
