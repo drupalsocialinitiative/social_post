@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityStorageException;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\social_api\User\UserManager as SocialApiUserManager;
 use Drupal\social_post\Entity\SocialPost;
@@ -18,6 +19,13 @@ class UserManager extends SocialApiUserManager {
   use StringTranslationTrait;
 
   /**
+   * The current logged in Drupal user.
+   *
+   * @var \Drupal\Core\Session\AccountProxy
+   */
+  protected $currentUser;
+
+  /**
    * Constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -26,12 +34,17 @@ class UserManager extends SocialApiUserManager {
    *   Used to display messages to user.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
    *   Used for logging errors.
+   * @param \Drupal\Core\Session\AccountProxyInterface $current_user
+   *   Used to get current active user.
    */
   public function __construct(EntityTypeManagerInterface $entity_type_manager,
                               MessengerInterface $messenger,
-                              LoggerChannelFactoryInterface $logger_factory) {
+                              LoggerChannelFactoryInterface $logger_factory,
+                              AccountProxyInterface $current_user) {
 
     parent::__construct('social_post', $entity_type_manager, $messenger, $logger_factory);
+
+    $this->currentUser = $current_user;
 
   }
 

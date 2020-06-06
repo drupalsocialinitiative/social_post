@@ -14,6 +14,7 @@ services:
       - '@entity_type.manager'
       - '@messenger'
       - '@logger.factory'
+      - '@current_user'
 
   social_post.data_handler:
     class: Drupal\social_post\DataHandler
